@@ -7,7 +7,9 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 ## 분석 상태
 
 - `소스 확인`: 취약 코드 또는 해당 버전의 실행 경로를 확인함
+- `배포 artifact 확인`: 공개 source가 없는 제품의 배포 package/binary에서 취약 실행 경로를 확인함
 - `패치 확인`: 수정 PR·commit 또는 fixed version을 확인함
+- `공개 PoC 확인`: 제3자의 동적 재현과 evidence를 검토했으나 독립 재현하지는 않음
 - `부분 동적 검증`: primitive 일부를 독립적으로 검증함
 - `E2E 재현`: 취약 제품 버전에서 전체 attack flow를 재현함
 
@@ -38,4 +40,8 @@ lexical path와 실제 filesystem object identity가 달라 권한 또는 sandbo
 
 ## Network / Exfiltration
 
-아직 등록된 CVE 없음.
+Browser, local IPC 또는 outbound request가 trust/authorization boundary를 넘어 privileged agent capability나 attacker-observable channel로 연결되는 계열.
+
+| CVE | 제품 | Root Cause | Vulnerable Primitive | 분석 상태 |
+|---|---|---|---|---|
+| [CVE-2025-52882](claude/CVE-2025-52882.md) | Anthropic Claude Code IDE Extensions | `loopback reachability ≠ authenticated trusted-client identity` | unauthenticated IDE MCP channel attachment 및 privileged tool invocation | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 |
