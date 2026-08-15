@@ -21,7 +21,11 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 
 ## Trust / Initialization
 
-아직 등록된 CVE 없음.
+Untrusted state가 trust 또는 authority 결정 전에 소비되거나, execution state가 trusted policy/control state로 승격되는 계열.
+
+| CVE | 제품 | Root Cause | Vulnerable Primitive | 분석 상태 |
+|---|---|---|---|---|
+| [CVE-2025-59532](codex/CVE-2025-59532.md) | OpenAI Codex CLI / IDE Extension | `logical command cwd ≠ trusted sandbox policy cwd` | model-controlled sandbox writable-root relocation 및 outside-workspace file write | 소스 확인 · 패치 확인 |
 
 ## Path / Filesystem
 
