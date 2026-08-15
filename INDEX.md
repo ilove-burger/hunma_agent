@@ -13,6 +13,7 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 - `부분 동적 검증`: primitive 일부를 독립적으로 검증함
 - `E2E 재현`: 취약 제품 버전에서 전체 attack flow를 재현함
 - `patch efficacy 미확정`: 공식 fixed-version 표시는 있으나 artifact 또는 E2E evidence로 invariant 복원을 확인하지 못함
+- `version boundary 불일치`: 공식 fixed-version과 artifact/E2E에서 처음 확인한 fixed version이 다름
 
 ## Command / Capability
 
@@ -32,6 +33,7 @@ Untrusted state가 trust 또는 authority 결정 전에 소비되거나, executi
 |---|---|---|---|---|
 | [CVE-2025-59532](codex/CVE-2025-59532.md) | OpenAI Codex CLI / IDE Extension | `logical command cwd ≠ trusted sandbox policy cwd` | model-controlled sandbox writable-root relocation 및 outside-workspace file write | 소스 확인 · 패치 확인 |
 | [CVE-2025-61260](codex/CVE-2025-61260.md) | OpenAI Codex CLI | `untrusted project environment ≠ trusted configuration locator` | configuration-root redirection 및 attacker-controlled MCP host process spawn | 소스 확인 · 패치 확인 · E2E 재현 |
+| [CVE-2025-59041](claude/CVE-2025-59041.md) | Anthropic Claude Code | `repository-local identity value ≠ trusted single argv` | pre-trust `git log` option injection 및 Git helper process spawn | 배포 artifact 확인 · 패치 확인 · E2E 재현 · version boundary 불일치 |
 
 ## Path / Filesystem
 
