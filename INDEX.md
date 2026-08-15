@@ -35,6 +35,7 @@ Untrusted state가 trust 또는 authority 결정 전에 소비되거나, executi
 | [CVE-2025-61260](codex/CVE-2025-61260.md) | OpenAI Codex CLI | `untrusted project environment ≠ trusted configuration locator` | configuration-root redirection 및 attacker-controlled MCP host process spawn | 소스 확인 · 패치 확인 · E2E 재현 |
 | [CVE-2025-59041](claude/CVE-2025-59041.md) | Anthropic Claude Code | `repository-local identity value ≠ trusted single argv` | pre-trust `git log` option injection 및 Git helper process spawn | 배포 artifact 확인 · 패치 확인 · E2E 재현 · version boundary 불일치 |
 | [CVE-2025-59536](claude/CVE-2025-59536.md) | Anthropic Claude Code | `project-declared approval ≠ user-granted trust` | project-self-approved MCP process 및 `apiKeyHelper`의 pre-trust execution | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
+| [CVE-2025-59828](claude/CVE-2025-59828.md) | Anthropic Claude Code | `--version syntax ≠ side-effect-free process semantics` | pre-trust `yarn --version`을 통한 repository `yarnPath` JavaScript execution | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
 
 ## Path / Filesystem
 
