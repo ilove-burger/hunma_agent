@@ -24,6 +24,7 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 | [CVE-2025-54558](codex/CVE-2025-54558.md) | OpenAI Codex CLI | `command identity ≠ effective command capability` | 위험한 `rg` 인자의 auto-approval 및 host process spawn | 소스 확인 · 패치 확인 · 부분 동적 검증 |
 | [CVE-2025-54795](claude/CVE-2025-54795.md) | Anthropic Claude Code | `approved command semantics ≠ executed command semantics` | safe `echo` 분류를 통한 approval-free additional shell command execution | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · 부분 동적 검증 |
 | [CVE-2025-58764](claude/CVE-2025-58764.md) | Anthropic Claude Code | `read-only command identity ≠ argument-expanded process capability` | auto-approved `rg --pre`를 통한 external preprocessor process spawn | 배포 artifact 확인 · 부분 동적 검증 · patch efficacy 미확정 |
+| [CVE-2025-64755](claude/CVE-2025-64755.md) | Anthropic Claude Code | `validator sed grammar ≠ executor sed grammar` | 공백 없는 `sed w<path>`를 통한 approval-free arbitrary user-writable file write | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
 
 ## Trust / Initialization
 
