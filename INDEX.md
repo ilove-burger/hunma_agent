@@ -12,6 +12,7 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 - `공개 PoC 확인`: 제3자의 동적 재현과 evidence를 검토했으나 독립 재현하지는 않음
 - `부분 동적 검증`: primitive 일부를 독립적으로 검증함
 - `E2E 재현`: 취약 제품 버전에서 전체 attack flow를 재현함
+- `patch efficacy 미확정`: 공식 fixed-version 표시는 있으나 artifact 또는 E2E evidence로 invariant 복원을 확인하지 못함
 
 ## Command / Capability
 
@@ -21,6 +22,7 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 |---|---|---|---|---|
 | [CVE-2025-54558](codex/CVE-2025-54558.md) | OpenAI Codex CLI | `command identity ≠ effective command capability` | 위험한 `rg` 인자의 auto-approval 및 host process spawn | 소스 확인 · 패치 확인 · 부분 동적 검증 |
 | [CVE-2025-54795](claude/CVE-2025-54795.md) | Anthropic Claude Code | `approved command semantics ≠ executed command semantics` | safe `echo` 분류를 통한 approval-free additional shell command execution | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · 부분 동적 검증 |
+| [CVE-2025-58764](claude/CVE-2025-58764.md) | Anthropic Claude Code | `read-only command identity ≠ argument-expanded process capability` | auto-approved `rg --pre`를 통한 external preprocessor process spawn | 배포 artifact 확인 · 부분 동적 검증 · patch efficacy 미확정 |
 
 ## Trust / Initialization
 
