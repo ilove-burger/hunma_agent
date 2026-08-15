@@ -37,6 +37,7 @@ lexical path와 실제 filesystem object identity가 달라 권한 또는 sandbo
 | CVE | 제품 | Root Cause | Vulnerable Primitive | 분석 상태 |
 |---|---|---|---|---|
 | [CVE-2025-55345](codex/CVE-2025-55345.md) | OpenAI Codex CLI | `lexically in-root path ≠ filesystem object confined to that root` | auto-approved `apply_patch`를 통한 outside-workspace file overwrite | 소스 확인 · 패치 확인 · 부분 동적 검증 |
+| [CVE-2025-54794](claude/CVE-2025-54794.md) | Anthropic Claude Code | `string prefix relation ≠ directory containment relation` | same-prefix sibling path의 outside-CWD file access 및 permission bypass | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · 부분 동적 검증 |
 
 ## Network / Exfiltration
 
