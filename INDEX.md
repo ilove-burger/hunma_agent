@@ -25,7 +25,11 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 
 ## Path / Filesystem
 
-아직 등록된 CVE 없음.
+lexical path와 실제 filesystem object identity가 달라 권한 또는 sandbox 경계를 우회하는 계열.
+
+| CVE | 제품 | Root Cause | Vulnerable Primitive | 분석 상태 |
+|---|---|---|---|---|
+| [CVE-2025-55345](codex/CVE-2025-55345.md) | OpenAI Codex CLI | `lexically in-root path ≠ filesystem object confined to that root` | auto-approved `apply_patch`를 통한 outside-workspace file overwrite | 소스 확인 · 패치 확인 · 부분 동적 검증 |
 
 ## Network / Exfiltration
 
