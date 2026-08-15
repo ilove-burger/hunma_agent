@@ -26,6 +26,7 @@ Untrusted state가 trust 또는 authority 결정 전에 소비되거나, executi
 | CVE | 제품 | Root Cause | Vulnerable Primitive | 분석 상태 |
 |---|---|---|---|---|
 | [CVE-2025-59532](codex/CVE-2025-59532.md) | OpenAI Codex CLI / IDE Extension | `logical command cwd ≠ trusted sandbox policy cwd` | model-controlled sandbox writable-root relocation 및 outside-workspace file write | 소스 확인 · 패치 확인 |
+| [CVE-2025-61260](codex/CVE-2025-61260.md) | OpenAI Codex CLI | `untrusted project environment ≠ trusted configuration locator` | configuration-root redirection 및 attacker-controlled MCP host process spawn | 소스 확인 · 패치 확인 · E2E 재현 |
 
 ## Path / Filesystem
 
