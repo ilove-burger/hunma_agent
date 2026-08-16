@@ -59,3 +59,4 @@ Browser, local IPC 또는 outbound request가 trust/authorization boundary를 �
 |---|---|---|---|---|
 | [CVE-2025-52882](claude/CVE-2025-52882.md) | Anthropic Claude Code IDE Extensions | `loopback reachability ≠ authenticated trusted-client identity` | unauthenticated IDE MCP channel attachment 및 privileged tool invocation | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 |
 | [CVE-2025-55284](claude/CVE-2025-55284.md) | Anthropic Claude Code | `no local mutation ≠ no attacker-observable side effect` | auto-approved DNS utility를 통한 attacker-observable outbound request | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · 부분 동적 검증 |
+| [CVE-2026-24052](claude/CVE-2026-24052.md) | Anthropic Claude Code | `hostname string prefix ≠ DNS authority identity` | trusted-domain 오분류를 통한 approval-free attacker-observable WebFetch GET | 배포 artifact 확인 · 패치 확인 · E2E 재현 |
