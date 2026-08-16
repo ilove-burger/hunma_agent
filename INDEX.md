@@ -29,6 +29,7 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 | [CVE-2026-24053](claude/CVE-2026-24053.md) | Anthropic Claude Code | `validator redirection grammar ≠ executor Zsh redirection grammar` | Zsh `>!` target 오분류를 통한 approval-free outside-CWD file write/overwrite | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
 | [CVE-2026-24887](claude/CVE-2026-24887.md) | Anthropic Claude Code | `raw command spelling ≠ post-shell argv identity` | quoted `"-"exec`을 통한 approval-free attacker-selected child process spawn | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
 | [CVE-2026-25722](claude/CVE-2026-25722.md) | Anthropic Claude Code | `authorization CWD ≠ execution CWD` | `cd` 이후 상대 redirection을 통한 approval-free protected-directory file create/overwrite | 배포 artifact 확인 · 패치 확인 · E2E 재현 |
+| [CVE-2026-25723](claude/CVE-2026-25723.md) | Anthropic Claude Code | `mode-approved command identity ≠ embedded-program capability` | piped `sed w/e`를 통한 approval-free protected/outside file write 및 GNU sed child-shell execution | 배포 artifact 확인 · 패치 확인 · E2E 재현 |
 
 ## Trust / Initialization
 
