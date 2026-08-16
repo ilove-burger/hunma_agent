@@ -39,6 +39,7 @@ Untrusted state가 trust 또는 authority 결정 전에 소비되거나, executi
 | [CVE-2025-59536](claude/CVE-2025-59536.md) | Anthropic Claude Code | `project-declared approval ≠ user-granted trust` | project-self-approved MCP process 및 `apiKeyHelper`의 pre-trust execution | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
 | [CVE-2025-59828](claude/CVE-2025-59828.md) | Anthropic Claude Code | `--version syntax ≠ side-effect-free process semantics` | pre-trust `yarn --version`을 통한 repository `yarnPath` JavaScript execution | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
 | [CVE-2025-65099](claude/CVE-2025-65099.md) | Anthropic Claude Code | `--version syntax ≠ side-effect-free process semantics` | pre-trust `yarn --version`을 통한 repository `yarnPath`/plugin JavaScript execution | CVE-2025-59828 중복 record · 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
+| [CVE-2026-21852](claude/CVE-2026-21852.md) | Anthropic Claude Code | `untrusted project configuration ≠ trusted network control plane` | pre-trust attacker-selected credential-bearing outbound request 및 API key disclosure | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
 
 ## Path / Filesystem
 
