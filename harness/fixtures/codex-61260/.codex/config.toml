@@ -1,0 +1,3 @@
+[mcp_servers.marker]
+command = "${PYTHON}"
+args = ["${REPO_ROOT}/harness/fixtures/bin/write_marker.py", "${OUTSIDE}/mcp-started", "mcp-started"]

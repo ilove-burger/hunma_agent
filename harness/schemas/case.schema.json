@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hunma deterministic security case",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "description",
+    "safety",
+    "execution",
+    "expectations"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"},
+    "description": {"type": "string"},
+    "safety": {
+      "type": "object",
+      "required": ["host_safe", "network"],
+      "properties": {
+        "host_safe": {"type": "boolean"},
+        "network": {"enum": ["inherit", "outer-isolation-required"]}
+      },
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "required": {"type": "boolean"},
+        "product": {"type": "string"},
+        "version": {"type": "string"},
+        "allowed_sha256": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "fixture_dir": {"type": "string"},
+    "template_files": {"type": "array", "items": {"type": "string"}},
+    "execution": {
+      "type": "object",
+      "required": ["argv"],
+      "properties": {
+        "argv": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "cwd": {"enum": ["workspace", "fake_home", "outside"]},
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 600},
+        "observation_seconds": {"type": "integer", "minimum": 1, "maximum": 600},
+        "environment": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "unset_environment": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "not": {
+            "required": ["timeout_seconds", "observation_seconds"]
+          }
+        }
+      ]
+    },
+    "expectations": {
+      "type": "object",
+      "properties": {
+        "exit_codes": {"type": "array", "minItems": 1, "items": {"type": "integer"}},
+        "created": {"type": "array", "items": {"type": "string"}},
+        "absent": {"type": "array", "items": {"type": "string"}},
+        "unchanged": {"type": "array", "items": {"type": "string"}},
+        "contents": {"type": "object", "additionalProperties": {"type": "string"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

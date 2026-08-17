@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "id": "selftest-marker",
+  "description": "Validate run isolation, process tracing, filesystem snapshots, and exact-content oracles.",
+  "safety": {
+    "host_safe": true,
+    "network": "inherit"
+  },
+  "fixture_dir": "harness/fixtures/selftest",
+  "execution": {
+    "argv": [
+      "${PYTHON}",
+      "${REPO_ROOT}/harness/fixtures/bin/write_marker.py",
+      "${OUTSIDE}/selftest-marker",
+      "selftest-ok"
+    ],
+    "cwd": "workspace",
+    "timeout_seconds": 10,
+    "environment": {}
+  },
+  "expectations": {
+    "exit_codes": [0],
+    "created": ["outside/selftest-marker"],
+    "absent": [],
+    "unchanged": [],
+    "contents": {
+      "outside/selftest-marker": "selftest-ok"
+    }
+  }
+}

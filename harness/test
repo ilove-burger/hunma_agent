@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
+
+python3 -m py_compile "$repo_root/harness/lib/run_case.py"
+
+while IFS= read -r case_file; do
+  "$repo_root/harness/run-case" --validate-only "$case_file"
+done < <(find "$repo_root/harness/cases" -maxdepth 1 -type f -name '*.json' -print | sort)
+
+"$repo_root/harness/run-case" "$repo_root/harness/cases/selftest-marker.json"

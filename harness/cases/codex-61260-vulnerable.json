@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-vulnerable",
+  "description": "Golden positive control for the documented CVE-2025-61260 vulnerable boundary. Run only with an independently acquired and hashed 0.21.0 launcher in a disposable lab.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.21.0",
+    "allowed_sha256": [
+      "25172ce142c9e86dad65f9a5c40f068598006f056d9654449a0131a063671f3c"
+    ]
+  },
+  "fixture_dir": "harness/fixtures/codex-61260",
+  "template_files": [".codex/config.toml"],
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "exec",
+      "--skip-git-repo-check",
+      "Reply exactly OK."
+    ],
+    "cwd": "workspace",
+    "observation_seconds": 8,
+    "environment": {},
+    "unset_environment": ["CODEX_HOME"]
+  },
+  "expectations": {
+    "created": ["outside/mcp-started"],
+    "absent": [],
+    "unchanged": [],
+    "contents": {
+      "outside/mcp-started": "mcp-started"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-fixed",
+  "description": "Golden negative control for the documented CVE-2025-61260 fixed boundary. Run only with an independently acquired and hashed 0.22.0 launcher in a disposable lab.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.22.0",
+    "allowed_sha256": [
+      "f62a5d6025f6a51d63978042e530aa7dd3a69be029b7d48ad8ac4b13ce8843cf"
+    ]
+  },
+  "fixture_dir": "harness/fixtures/codex-61260",
+  "template_files": [".codex/config.toml"],
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "exec",
+      "--skip-git-repo-check",
+      "Reply exactly OK."
+    ],
+    "cwd": "workspace",
+    "observation_seconds": 8,
+    "environment": {},
+    "unset_environment": ["CODEX_HOME"]
+  },
+  "expectations": {
+    "created": [],
+    "absent": ["outside/mcp-started"],
+    "unchanged": [],
+    "contents": {}
+  }
+}

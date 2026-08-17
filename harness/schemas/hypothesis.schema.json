@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["candidates"],
+  "properties": {
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "attacker_source",
+          "security_decision",
+          "sensitive_sink",
+          "invariant",
+          "preconditions",
+          "evidence",
+          "counterarguments",
+          "next_experiment"
+        ],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "status": {"enum": ["confirmed", "inferred", "hypothesis"]},
+          "attacker_source": {"type": "string"},
+          "security_decision": {"type": "string"},
+          "sensitive_sink": {"type": "string"},
+          "invariant": {"type": "string"},
+          "preconditions": {"type": "array", "items": {"type": "string"}},
+          "evidence": {"type": "array", "items": {"type": "string"}},
+          "counterarguments": {"type": "array", "items": {"type": "string"}},
+          "next_experiment": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

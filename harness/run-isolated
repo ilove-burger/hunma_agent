@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
+runs_root="$repo_root/harness/runs"
+targets_root="$repo_root/harness/targets"
+user_home=$(python3 -c 'import os, pwd; print(pwd.getpwuid(os.getuid()).pw_dir)')
+
+if ! command -v bwrap >/dev/null 2>&1; then
+  echo "error: bubblewrap (bwrap) is required for run-isolated" >&2
+  exit 2
+fi
+
+mkdir -p "$runs_root" "$targets_root"
+
+exec bwrap \
+  --die-with-parent \
+  --new-session \
+  --unshare-user \
+  --unshare-pid \
+  --unshare-net \
+  --unshare-uts \
+  --unshare-ipc \
+  --hostname hunma-lab \
+  --cap-drop ALL \
+  --ro-bind / / \
+  --tmpfs "$user_home" \
+  --dir "$user_home/agent" \
+  --ro-bind "$repo_root" "$repo_root" \
+  --bind "$runs_root" "$runs_root" \
+  --ro-bind "$targets_root" "$targets_root" \
+  --tmpfs /tmp \
+  --tmpfs /run \
+  --proc /proc \
+  --dev /dev \
+  --clearenv \
+  --setenv HOME /tmp/hunma-research-home \
+  --setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+  --setenv LANG C.UTF-8 \
+  --chdir "$repo_root" \
+  "$repo_root/harness/run-case" --isolated-lab-confirmed "$@"

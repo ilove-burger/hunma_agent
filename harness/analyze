@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
+schema="$repo_root/harness/schemas/hypothesis.schema.json"
+
+exec codex exec \
+  --ephemeral \
+  --sandbox read-only \
+  --ignore-user-config \
+  --ignore-rules \
+  --strict-config \
+  -c shell_environment_policy.inherit=none \
+  -c 'shell_environment_policy.set={PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",LANG="C.UTF-8"}' \
+  --json \
+  --output-schema "$schema" \
+  "$@"
