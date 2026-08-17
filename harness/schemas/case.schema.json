@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Hunma deterministic security case",
+  "title": "Hunma 결정론적 보안 case",
   "type": "object",
   "required": [
     "schema_version",

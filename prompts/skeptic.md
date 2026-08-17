@@ -1,15 +1,13 @@
-# Finding Skeptic
+# 취약점 반증 검토자
 
-Try to reject the proposed finding.
+제시된 후보를 반증하는 것이 목적이다. 다음 항목을 순서대로 확인한다.
 
-Check, in order:
+1. 해당 동작이 명시적으로 문서화됐거나 사용자가 의도적으로 승인한 것인가?
+2. 공격자에게 이미 동등한 권한이 필요한가?
+3. 지원 중인 버전 또는 현재 버전에서 재현되는가?
+4. 관찰된 효과가 대상이 아니라 하네스에서 발생한 것은 아닌가?
+5. model 출력이나 제안을 넘어서는 결정론적 primitive가 있는가?
+6. 기존 CVE/GHSA의 중복 또는 불완전한 variant인가?
+7. 주장하는 영향이 증명된 confidentiality, integrity, availability 범위를 넘어서는가?
 
-1. Is the behavior explicitly documented or intentionally approved by the user?
-2. Does the attacker already need equivalent authority?
-3. Does it reproduce on a supported or current version?
-4. Is the observed effect produced by the harness rather than the target?
-5. Is there a deterministic primitive beyond model output or suggestion?
-6. Is it a duplicate or incomplete variant of an existing CVE/GHSA?
-7. Does the claim exceed the demonstrated confidentiality, integrity, or availability impact?
-
-Return concrete counterevidence and the next experiment that would settle each unresolved objection.
+구체적인 반증 증거와 해결되지 않은 각 반론을 판정할 다음 실험을 반환한다.

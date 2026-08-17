@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "codex-61260-fixed",
-  "description": "Golden negative control for the documented CVE-2025-61260 fixed boundary. Run only with an independently acquired and hashed 0.22.0 launcher in a disposable lab.",
+  "description": "문서화된 CVE-2025-61260 수정 경계의 골든 음성 대조군이다. 독립적으로 확보하고 해시를 검증한 0.22.0 실행 파일만 폐기 가능한 실험 환경에서 실행한다.",
   "safety": {
     "host_safe": false,
     "network": "outer-isolation-required"
@@ -21,7 +21,7 @@
       "${TARGET}",
       "exec",
       "--skip-git-repo-check",
-      "Reply exactly OK."
+      "정확히 OK라고 답하세요."
     ],
     "cwd": "workspace",
     "observation_seconds": 8,

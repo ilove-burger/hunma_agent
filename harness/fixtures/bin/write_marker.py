@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write one marker below a path selected by the harness case."""
+"""하네스 case가 지정한 경로에 marker 하나를 기록한다."""
 
 from __future__ import annotations
 

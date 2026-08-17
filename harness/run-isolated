@@ -7,7 +7,7 @@ targets_root="$repo_root/harness/targets"
 user_home=$(python3 -c 'import os, pwd; print(pwd.getpwuid(os.getuid()).pw_dir)')
 
 if ! command -v bwrap >/dev/null 2>&1; then
-  echo "error: bubblewrap (bwrap) is required for run-isolated" >&2
+  echo "오류: run-isolated를 사용하려면 bubblewrap(bwrap)이 필요합니다" >&2
   exit 2
 fi
 

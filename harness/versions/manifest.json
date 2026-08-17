@@ -10,7 +10,7 @@
       "sha256": "25172ce142c9e86dad65f9a5c40f068598006f056d9654449a0131a063671f3c",
       "path": "harness/targets/codex-0.21.0/bin/codex-x86_64-unknown-linux-musl",
       "archive_sha256": "e099b5046506bf35d0acb17cb08c0f01e08d1f4e68ac54f7f55691f798ffc461",
-      "purpose": "CVE-2025-61260 positive control",
+      "purpose": "CVE-2025-61260 취약 버전 양성 대조군",
       "status": "registered"
     },
     {
@@ -22,7 +22,7 @@
       "sha256": "f62a5d6025f6a51d63978042e530aa7dd3a69be029b7d48ad8ac4b13ce8843cf",
       "path": "harness/targets/codex-0.22.0/bin/codex-x86_64-unknown-linux-musl",
       "archive_sha256": "f10911dbcf2acf7ccd385c55e936d2a3713d80edbd85a940883e142fd604f3dc",
-      "purpose": "CVE-2025-61260 negative control",
+      "purpose": "CVE-2025-61260 수정 버전 음성 대조군",
       "status": "registered"
     }
   ]

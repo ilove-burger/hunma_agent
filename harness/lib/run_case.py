@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic, marker-only runner for local agent security research cases."""
+"""로컬 agent security 연구 case를 위한 결정론적 marker-only runner."""
 
 from __future__ import annotations
 
@@ -47,7 +47,10 @@ class CaseError(RuntimeError):
 
 
 def json_dump(path: Path, value: Any) -> None:
-    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
 
 
 def sha256_file(path: Path) -> str:
@@ -64,14 +67,14 @@ def require_within(path: Path, root: Path, label: str) -> Path:
     try:
         resolved.relative_to(root_resolved)
     except ValueError as exc:
-        raise CaseError(f"{label} must stay below {root_resolved}: {path}") from exc
+        raise CaseError(f"{label}은(는) {root_resolved} 아래에 있어야 합니다: {path}") from exc
     return resolved
 
 
 def safe_relative(value: str, label: str) -> Path:
     path = Path(value)
     if path.is_absolute() or ".." in path.parts:
-        raise CaseError(f"{label} must be a relative path without '..': {value}")
+        raise CaseError(f"{label}은(는) '..'이 없는 상대 경로여야 합니다: {value}")
     return path
 
 
@@ -79,13 +82,13 @@ def load_case(case_argument: str) -> tuple[Path, dict[str, Any]]:
     candidate = Path(case_argument)
     if not candidate.is_absolute():
         candidate = REPO_ROOT / candidate
-    case_path = require_within(candidate, CASES_ROOT, "case file")
+    case_path = require_within(candidate, CASES_ROOT, "case 파일")
     try:
         value = json.loads(case_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        raise CaseError(f"cannot load case {case_path}: {exc}") from exc
+        raise CaseError(f"case를 불러올 수 없습니다: {case_path}: {exc}") from exc
     if not isinstance(value, dict):
-        raise CaseError("case root must be a JSON object")
+        raise CaseError("case root는 JSON object여야 합니다")
     return case_path, value
 
 
@@ -93,88 +96,88 @@ def validate_case(case: dict[str, Any]) -> None:
     required = ("schema_version", "id", "description", "safety", "execution", "expectations")
     missing = [key for key in required if key not in case]
     if missing:
-        raise CaseError(f"missing required case fields: {', '.join(missing)}")
+        raise CaseError(f"필수 case field가 없습니다: {', '.join(missing)}")
     if case["schema_version"] != 1:
-        raise CaseError("only case schema_version 1 is supported")
+        raise CaseError("case schema_version 1만 지원합니다")
     if not isinstance(case["id"], str) or not CASE_ID_RE.fullmatch(case["id"]):
-        raise CaseError("case id must match [a-z0-9][a-z0-9._-]{0,127}")
+        raise CaseError("case id는 [a-z0-9][a-z0-9._-]{0,127} 형식이어야 합니다")
 
     safety = case["safety"]
     execution = case["execution"]
     expectations = case["expectations"]
     if not isinstance(safety, dict) or not isinstance(execution, dict) or not isinstance(expectations, dict):
-        raise CaseError("safety, execution, and expectations must be JSON objects")
+        raise CaseError("safety, execution, expectations는 JSON object여야 합니다")
     if safety.get("network") not in ("inherit", "outer-isolation-required"):
-        raise CaseError("safety.network must be 'inherit' or 'outer-isolation-required'")
+        raise CaseError("safety.network는 'inherit' 또는 'outer-isolation-required'여야 합니다")
     if not isinstance(safety.get("host_safe"), bool):
-        raise CaseError("safety.host_safe must be boolean")
+        raise CaseError("safety.host_safe는 boolean이어야 합니다")
 
     argv = execution.get("argv")
     if not isinstance(argv, list) or not argv or not all(isinstance(item, str) for item in argv):
-        raise CaseError("execution.argv must be a non-empty array of strings")
+        raise CaseError("execution.argv는 비어 있지 않은 string 배열이어야 합니다")
     if execution.get("cwd", "workspace") not in ("workspace", "fake_home", "outside"):
-        raise CaseError("execution.cwd must be workspace, fake_home, or outside")
+        raise CaseError("execution.cwd는 workspace, fake_home, outside 중 하나여야 합니다")
     timeout = execution.get("timeout_seconds", 30)
     if not isinstance(timeout, int) or not 1 <= timeout <= 600:
-        raise CaseError("execution.timeout_seconds must be an integer from 1 to 600")
+        raise CaseError("execution.timeout_seconds는 1~600 범위의 integer여야 합니다")
     observation_seconds = execution.get("observation_seconds")
     if observation_seconds is not None:
         if "timeout_seconds" in execution:
-            raise CaseError("execution may use timeout_seconds or observation_seconds, not both")
+            raise CaseError("execution에는 timeout_seconds와 observation_seconds를 함께 사용할 수 없습니다")
         if not isinstance(observation_seconds, int) or not 1 <= observation_seconds <= 600:
-            raise CaseError("execution.observation_seconds must be an integer from 1 to 600")
+            raise CaseError("execution.observation_seconds는 1~600 범위의 integer여야 합니다")
     environment = execution.get("environment", {})
     if not isinstance(environment, dict) or not all(
         isinstance(key, str) and isinstance(value, str) for key, value in environment.items()
     ):
-        raise CaseError("execution.environment must map strings to strings")
+        raise CaseError("execution.environment는 string key를 string value에 매핑해야 합니다")
     blocked = sorted(BLOCKED_ENV.intersection(environment))
     if blocked:
-        raise CaseError(f"case may not inject credential environment variables: {', '.join(blocked)}")
+        raise CaseError(f"case에 자격 증명 environment variable을 주입할 수 없습니다: {', '.join(blocked)}")
     unset_environment = execution.get("unset_environment", [])
     if not isinstance(unset_environment, list) or not all(
         isinstance(key, str) and key for key in unset_environment
     ):
-        raise CaseError("execution.unset_environment must be an array of non-empty strings")
+        raise CaseError("execution.unset_environment는 비어 있지 않은 string의 배열이어야 합니다")
     protected = sorted(PROTECTED_ENV.intersection(unset_environment))
     if protected:
-        raise CaseError(f"case may not unset safety environment variables: {', '.join(protected)}")
+        raise CaseError(f"case에서 안전 environment variable을 제거할 수 없습니다: {', '.join(protected)}")
 
     fixture_dir = case.get("fixture_dir")
     if fixture_dir is not None:
         if not isinstance(fixture_dir, str):
-            raise CaseError("fixture_dir must be a string")
-        fixture_path = require_within(REPO_ROOT / fixture_dir, FIXTURES_ROOT, "fixture directory")
+            raise CaseError("fixture_dir는 string이어야 합니다")
+        fixture_path = require_within(REPO_ROOT / fixture_dir, FIXTURES_ROOT, "fixture 디렉터리")
         if not fixture_path.is_dir():
-            raise CaseError(f"fixture directory does not exist: {fixture_path}")
+            raise CaseError(f"fixture 디렉터리가 없습니다: {fixture_path}")
     for template in case.get("template_files", []):
-        safe_relative(template, "template file")
+        safe_relative(template, "template 파일")
 
     target = case.get("target", {})
     if not isinstance(target, dict):
-        raise CaseError("target must be a JSON object")
+        raise CaseError("target은 JSON object여야 합니다")
     allowed_hashes = target.get("allowed_sha256", [])
     if not isinstance(allowed_hashes, list) or not all(
         isinstance(item, str) and re.fullmatch(r"[0-9a-f]{64}", item) for item in allowed_hashes
     ):
-        raise CaseError("target.allowed_sha256 must be an array of lowercase SHA-256 strings")
+        raise CaseError("target.allowed_sha256은 소문자 SHA-256 string 배열이어야 합니다")
 
     for key in ("created", "absent", "unchanged"):
         values = expectations.get(key, [])
         if not isinstance(values, list) or not all(isinstance(item, str) for item in values):
-            raise CaseError(f"expectations.{key} must be an array of strings")
+            raise CaseError(f"expectations.{key}는 string 배열이어야 합니다")
         for value in values:
             safe_relative(value, f"expectations.{key}")
     contents = expectations.get("contents", {})
     if not isinstance(contents, dict) or not all(
         isinstance(key, str) and isinstance(value, str) for key, value in contents.items()
     ):
-        raise CaseError("expectations.contents must map paths to exact strings")
+        raise CaseError("expectations.contents는 path를 정확한 string에 매핑해야 합니다")
     for value in contents:
         safe_relative(value, "expectations.contents")
     exit_codes = expectations.get("exit_codes", [0])
     if not isinstance(exit_codes, list) or not exit_codes or not all(isinstance(item, int) for item in exit_codes):
-        raise CaseError("expectations.exit_codes must be a non-empty array of integers")
+        raise CaseError("expectations.exit_codes는 비어 있지 않은 integer 배열이어야 합니다")
 
 
 def substitute(value: str, variables: dict[str, str]) -> str:
@@ -183,7 +186,7 @@ def substitute(value: str, variables: dict[str, str]) -> str:
         result = result.replace("${" + name + "}", replacement)
     unresolved = re.findall(r"\$\{[A-Z0-9_]+\}", result)
     if unresolved:
-        raise CaseError(f"unresolved placeholders in {value!r}: {', '.join(unresolved)}")
+        raise CaseError(f"{value!r}에 치환되지 않은 placeholder가 있습니다: {', '.join(unresolved)}")
     return result
 
 
@@ -191,7 +194,7 @@ def snapshot(root: Path) -> dict[str, Any]:
     entries: dict[str, Any] = {}
     for index, path in enumerate(sorted(root.rglob("*"), key=lambda item: str(item))):
         if index >= MAX_SNAPSHOT_ENTRIES:
-            entries["__snapshot_error__"] = {"reason": "entry limit exceeded"}
+            entries["__snapshot_error__"] = {"reason": "항목 수 제한을 초과했습니다"}
             break
         relative = path.relative_to(root).as_posix()
         try:
@@ -219,7 +222,7 @@ def snapshot(root: Path) -> dict[str, Any]:
                     item["sha256"] = sha256_file(path)
                 else:
                     item["sha256"] = None
-                    item["hash_skipped"] = "file exceeds 8 MiB"
+                    item["hash_skipped"] = "파일 크기가 8 MiB를 초과했습니다"
                 entries[relative] = item
             else:
                 entries[relative] = {"type": "other", "mode": oct(stat_result.st_mode & 0o7777)}
@@ -244,43 +247,43 @@ def evaluate(
         checks.append({"name": name, "passed": passed, "detail": detail})
 
     if timed_out:
-        add("timeout", False, "target exceeded the configured timeout")
+        add("timeout", False, "대상이 설정된 timeout을 초과했습니다")
     elif observation_mode:
         detail = (
-            "configured observation window elapsed; target process group was terminated"
+            "설정된 관찰 시간이 끝나 대상 process group을 종료했습니다"
             if observation_window_elapsed
-            else f"target exited before the observation window ended; exit_code={exit_code}"
+            else f"관찰 시간이 끝나기 전에 대상이 종료됐습니다: exit_code={exit_code}"
         )
         add("observation_window", True, detail)
     else:
         allowed = expectations.get("exit_codes", [0])
-        add("exit_code", exit_code in allowed, f"observed={exit_code}, allowed={allowed}")
+        add("exit_code", exit_code in allowed, f"관찰값={exit_code}, 허용값={allowed}")
 
     for relative in expectations.get("created", []):
         add(
             f"created:{relative}",
             relative not in before and relative in after,
-            f"before={relative in before}, after={relative in after}",
+            f"실행 전={relative in before}, 실행 후={relative in after}",
         )
     for relative in expectations.get("absent", []):
-        add(f"absent:{relative}", relative not in after, f"after={relative in after}")
+        add(f"absent:{relative}", relative not in after, f"실행 후={relative in after}")
     for relative in expectations.get("unchanged", []):
         add(
             f"unchanged:{relative}",
             before.get(relative) == after.get(relative),
-            "filesystem metadata and content hash comparison",
+            "filesystem metadata와 content hash 비교",
         )
     for relative, expected_content in expectations.get("contents", {}).items():
-        target = lab_root / safe_relative(relative, "content oracle")
+        target = lab_root / safe_relative(relative, "content oracle 경로")
         try:
             observed = target.read_text(encoding="utf-8")
         except OSError as exc:
-            add(f"content:{relative}", False, f"cannot read marker: {exc}")
+            add(f"content:{relative}", False, f"marker를 읽을 수 없습니다: {exc}")
         else:
             add(
                 f"content:{relative}",
                 observed == expected_content,
-                f"observed={observed!r}",
+                f"관찰값={observed!r}",
             )
 
     if timed_out:
@@ -290,25 +293,25 @@ def evaluate(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("case", help="JSON case below harness/cases")
-    parser.add_argument("--target", help="explicit target binary or launcher path")
+    parser.add_argument("case", help="harness/cases 아래의 JSON case")
+    parser.add_argument("--target", help="명시적인 대상 binary 또는 launcher 경로")
     parser.add_argument(
         "--trace",
         choices=("auto", "always", "never"),
         default="auto",
-        help="capture child syscalls with strace when available",
+        help="사용할 수 있으면 strace로 child syscall을 수집합니다",
     )
     parser.add_argument(
         "--isolated-lab-confirmed",
         action="store_true",
-        help="confirm this invocation is already inside a disposable outer isolation boundary",
+        help="현재 실행이 이미 disposable 외부 격리 경계 안에 있음을 확인합니다",
     )
     parser.add_argument(
         "--allow-root-in-disposable-lab",
         action="store_true",
-        help="allow uid 0 only together with --isolated-lab-confirmed",
+        help="--isolated-lab-confirmed와 함께 사용할 때만 uid 0을 허용합니다",
     )
-    parser.add_argument("--validate-only", action="store_true", help="validate the case without executing it")
+    parser.add_argument("--validate-only", action="store_true", help="case를 실행하지 않고 검증만 합니다")
     return parser
 
 
@@ -318,21 +321,26 @@ def main() -> int:
         case_path, case = load_case(args.case)
         validate_case(case)
         if args.validate_only:
-            print(json.dumps({"case": case["id"], "status": "VALID", "path": str(case_path)}))
+            print(
+                json.dumps(
+                    {"case": case["id"], "status": "VALID", "path": str(case_path)},
+                    ensure_ascii=False,
+                )
+            )
             return 0
 
         safety = case["safety"]
         if not safety["host_safe"] and not args.isolated_lab_confirmed:
             raise CaseError(
-                "this case may execute vulnerable code; run it in a disposable VM/container and pass "
-                "--isolated-lab-confirmed"
+                "이 case는 취약한 코드를 실행할 수 있습니다. disposable VM/container에서 실행하고 "
+                "--isolated-lab-confirmed를 전달하세요"
             )
         if os.geteuid() == 0 and not (
             args.isolated_lab_confirmed and args.allow_root_in_disposable_lab
         ):
             raise CaseError(
-                "refusing to run as root; use an unprivileged lab user, or explicitly combine "
-                "--isolated-lab-confirmed with --allow-root-in-disposable-lab"
+                "root 실행을 거부합니다. 비권한 lab 사용자를 사용하거나 --isolated-lab-confirmed와 "
+                "--allow-root-in-disposable-lab을 명시적으로 함께 사용하세요"
             )
 
         target_path: Path | None = None
@@ -341,18 +349,18 @@ def main() -> int:
         if args.target:
             target_path = Path(args.target).expanduser().resolve()
             if not target_path.is_file():
-                raise CaseError(f"target is not a file: {target_path}")
+                raise CaseError(f"target이 파일이 아닙니다: {target_path}")
             if Path(args.target).expanduser().is_symlink():
                 raise CaseError(
-                    "target may not be a symlink; copy a pinned launcher/artifact into "
-                    "harness/targets and hash that file"
+                    "target에는 symlink를 사용할 수 없습니다. 고정된 launcher/artifact를 "
+                    "harness/targets에 복사하고 해당 파일의 hash를 기록하세요"
                 )
             target_hash = sha256_file(target_path)
             allowed_hashes = target_config.get("allowed_sha256", [])
             if allowed_hashes and target_hash not in allowed_hashes:
-                raise CaseError(f"target SHA-256 is not allowed by the case: {target_hash}")
+                raise CaseError(f"target SHA-256이 case의 허용 목록에 없습니다: {target_hash}")
         elif target_config.get("required", False):
-            raise CaseError("this case requires --target with an explicit binary or launcher")
+            raise CaseError("이 case에는 명시적인 binary 또는 launcher를 지정하는 --target이 필요합니다")
 
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         run_dir = RUNS_ROOT / case["id"] / f"{timestamp}-{uuid.uuid4().hex[:8]}"
@@ -382,11 +390,11 @@ def main() -> int:
 
         fixture_dir = case.get("fixture_dir")
         if fixture_dir:
-            source = require_within(REPO_ROOT / fixture_dir, FIXTURES_ROOT, "fixture directory")
+            source = require_within(REPO_ROOT / fixture_dir, FIXTURES_ROOT, "fixture 디렉터리")
             shutil.copytree(source, workspace, dirs_exist_ok=True, symlinks=True)
         for relative_text in case.get("template_files", []):
-            relative = safe_relative(relative_text, "template file")
-            template_path = require_within(workspace / relative, workspace, "template file")
+            relative = safe_relative(relative_text, "template 파일")
+            template_path = require_within(workspace / relative, workspace, "template 파일")
             content = template_path.read_text(encoding="utf-8")
             template_path.write_text(substitute(content, variables), encoding="utf-8")
 
@@ -433,10 +441,10 @@ def main() -> int:
 
         traced_argv = argv
         trace_enabled = False
-        trace_reason = "disabled by option"
+        trace_reason = "option으로 비활성화됨"
         strace_path = shutil.which("strace")
         if args.trace == "always" and not strace_path:
-            raise CaseError("--trace always requested but strace is unavailable")
+            raise CaseError("--trace always를 요청했지만 strace를 사용할 수 없습니다")
         if args.trace != "never" and strace_path:
             true_path = shutil.which("true") or "/bin/true"
             probe = subprocess.run(
@@ -449,7 +457,7 @@ def main() -> int:
             )
             if probe.returncode == 0:
                 trace_enabled = True
-                trace_reason = "strace probe succeeded"
+                trace_reason = "strace probe 성공"
                 traced_argv = [
                     strace_path,
                     "-ff",
@@ -461,17 +469,17 @@ def main() -> int:
                     *argv,
                 ]
             else:
-                trace_reason = f"strace probe failed with exit {probe.returncode}"
+                trace_reason = f"strace probe 실패: exit={probe.returncode}"
                 (artifacts / "strace-probe.stderr.log").write_text(
                     probe.stderr, encoding="utf-8"
                 )
                 if args.trace == "always":
                     raise CaseError(
-                        "--trace always requested but strace cannot attach in this environment; "
-                        f"see {artifacts / 'strace-probe.stderr.log'}"
+                        "--trace always를 요청했지만 현재 환경에서 strace를 attach할 수 없습니다. "
+                        f"다음을 확인하세요: {artifacts / 'strace-probe.stderr.log'}"
                     )
         elif args.trace != "never":
-            trace_reason = "strace executable not found"
+            trace_reason = "strace executable을 찾을 수 없음"
 
         started = time.monotonic()
         timed_out = False
@@ -536,10 +544,13 @@ def main() -> int:
             "checks": checks,
         }
         json_dump(artifacts / "result.json", result)
-        print(json.dumps(result, indent=2, sort_keys=True))
+        print(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False))
         return 0 if status == "PASS" else 1
     except CaseError as exc:
-        print(json.dumps({"status": "ERROR", "error": str(exc)}), file=sys.stderr)
+        print(
+            json.dumps({"status": "ERROR", "error": str(exc)}, ensure_ascii=False),
+            file=sys.stderr,
+        )
         return 2
 
 

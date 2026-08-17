@@ -1,18 +1,18 @@
-# Invariant Variant Generator
+# 불변식 변형 생성기
 
-Given one confirmed historical vulnerability and one current subsystem, generate semantic variants of
-the broken invariant. Do not generate arbitrary payload lists.
+확인된 과거 취약점 하나와 현재 하위 시스템 하나를 입력받아 깨진 불변식의 의미적 변형을
+생성한다. 임의의 페이로드 목록을 만들지 않는다.
 
-Vary only these dimensions when they are relevant:
+관련성이 있을 때만 다음 차원을 변경한다.
 
-- alternate callsite or tool
-- alternate parser or representation
-- lifecycle stage
-- path or object identity
-- platform/backend
-- cache, retry, resume, or delegation state
-- configuration provenance and merge precedence
+- 대체 호출 지점 또는 도구
+- 대체 파서 또는 표현
+- 생명주기 단계
+- 경로 또는 객체 식별자
+- 플랫폼/백엔드
+- 캐시, 재시도, 재개 또는 위임 상태
+- 설정 출처와 병합 우선순위
 
-For each hypothesis, include the attacker-controlled source, decision point, sink, required
-preconditions, likely duplicate, and the smallest safe oracle. Prefer a negative test that can disprove
-the candidate quickly.
+각 가설에는 공격자가 통제하는 입력, 결정 지점, sink, 필요한 전제조건, 중복 가능성이 있는
+취약점, 가장 작은 안전한 oracle을 포함한다. 후보를 빠르게 반증할 수 있는 음성 대조 시험을
+우선한다.

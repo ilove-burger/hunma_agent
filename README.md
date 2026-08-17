@@ -18,7 +18,7 @@ variant-hunting 관점에서 분석하는 연구 저장소다.
 연구용 Codex를 읽기 전용·ephemeral·구조화 출력 모드로 실행:
 
 ```bash
-./harness/analyze "Use prompts/mapper.md to map the config trust subsystem."
+./harness/analyze "prompts/mapper.md를 사용해 config trust subsystem을 매핑하세요."
 ```
 
 취약한 historical artifact를 실행하는 case는 논리적 workspace 밖에서 효과를 관찰하더라도

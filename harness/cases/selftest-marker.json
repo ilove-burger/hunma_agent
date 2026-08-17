@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "selftest-marker",
-  "description": "Validate run isolation, process tracing, filesystem snapshots, and exact-content oracles.",
+  "description": "실행 격리, process tracing, filesystem snapshot, 정확한 content oracle을 검증한다.",
   "safety": {
     "host_safe": true,
     "network": "inherit"
