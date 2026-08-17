@@ -101,17 +101,14 @@ hunma_agent/
 ./harness/run-isolated harness/cases/selftest-marker.json
 ```
 
-CVE-2025-61260 golden control:
+CVE-2025-61260의 취약·수정·current 골든 비교:
 
 ```bash
-./harness/run-isolated \
-  harness/cases/codex-61260-vulnerable.json \
-  --target harness/targets/codex-0.21.0/bin/codex-x86_64-unknown-linux-musl
-
-./harness/run-isolated \
-  harness/cases/codex-61260-fixed.json \
-  --target harness/targets/codex-0.22.0/bin/codex-x86_64-unknown-linux-musl
+./harness/compare-codex-61260
 ```
+
+비교 명령은 세 배포 아티팩트의 SHA-256을 먼저 검증하고 격리된 case를 순서대로 실행한다.
+통합 `result.json`, 이벤트 `events.jsonl`, 각 실행의 stdout·stderr와 원본 결과 경로가 보존된다.
 
 설치와 case 작성 방법은 **[하네스 문서](harness/README.md)**를 참고한다. Historical binary와 실행
 결과는 Git에 포함하지 않으며, hash와 manifest만 버전 관리한다.

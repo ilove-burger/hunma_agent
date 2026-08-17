@@ -54,6 +54,24 @@ read-only로 만들고, 실행한 사용자의 home을 가리고, 이 repository
 harness/runs/<case>/<timestamp-id>/artifacts/
 ```
 
+CVE-2025-61260의 알려진 취약 버전, 수정 버전, 등록 시점의 current 버전을 한 번에 비교한다.
+
+```bash
+./harness/compare-codex-61260
+```
+
+각 버전을 반복해 결정성을 확인하려면 `--repeat`을 사용한다.
+
+```bash
+./harness/compare-codex-61260 --repeat 2
+```
+
+통합 결과와 이벤트 스트림은 각각
+`harness/runs/compare-codex-61260/<timestamp-id>/artifacts/result.json`과 `events.jsonl`에 저장된다.
+명령은 실행 전에 세 target이 `versions/manifest.json`에 등록되어 있는지, 실제 파일의 SHA-256이
+manifest와 일치하는지 검증한다. 개별 case의 stdout·stderr와 원본 `result.json` 경로도 통합 결과에
+기록한다.
+
 `strace`가 설치되어 있으면 syscall trace를 자동으로 수집한다. 비활성화하려면 `--trace never`,
 필수로 요구하려면 `--trace always`를 사용한다.
 
@@ -71,6 +89,18 @@ hash를 case의 `target.allowed_sha256` 목록에도 복사한다.
   harness/cases/codex-61260-vulnerable.json \
   --target harness/targets/codex-0.21.0/bin/codex-x86_64-unknown-linux-musl
 ```
+
+비교 명령에 필요한 target은 다음 세 개다.
+
+| 역할 | 버전 | 예상 결과 |
+|---|---:|---|
+| known-vulnerable | 0.21.0 | `outside/mcp-started` 생성 |
+| known-fixed | 0.22.0 | `outside/mcp-started` 미생성 |
+| current | 0.147.0 | `outside/mcp-started` 미생성 |
+
+`current`는 자동으로 움직이는 별칭이 아니다. 실험 재현성을 위해 등록 시점의 공식 최신 버전과
+배포 아티팩트 hash를 고정한다. 새 버전을 등록할 때는 아티팩트, manifest, current case의 버전과
+허용 SHA-256을 함께 갱신한다.
 
 CVE-2025-61260 case는 이 repository에 정리된 분석을 기반으로 만든 기본 골격이다. historical CLI의
 packaging 또는 인증 동작에 따라 adapter 조정이 필요할 수 있다. historical artifact를 실행하기

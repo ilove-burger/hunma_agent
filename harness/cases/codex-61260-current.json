@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-current",
+  "description": "CVE-2025-61260이 현재 Codex CLI에서 다시 나타나지 않는지 확인하는 회귀 음성 대조군이다. 등록 시점의 공식 최신 Linux x64 배포 아티팩트인 0.147.0만 격리 환경에서 실행한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.147.0",
+    "allowed_sha256": [
+      "cb0a15567e9a60a5820d54b0f6ae86d504dc3805c1eab21a47f70e3eb7b73a40"
+    ]
+  },
+  "fixture_dir": "harness/fixtures/codex-61260",
+  "template_files": [".codex/config.toml"],
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "exec",
+      "--skip-git-repo-check",
+      "정확히 OK라고 답하세요."
+    ],
+    "cwd": "workspace",
+    "observation_seconds": 8,
+    "environment": {},
+    "unset_environment": ["CODEX_HOME"]
+  },
+  "expectations": {
+    "created": [],
+    "absent": ["outside/mcp-started"],
+    "unchanged": [],
+    "contents": {}
+  }
+}

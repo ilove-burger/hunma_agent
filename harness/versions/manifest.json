@@ -24,6 +24,18 @@
       "archive_sha256": "f10911dbcf2acf7ccd385c55e936d2a3713d80edbd85a940883e142fd604f3dc",
       "purpose": "CVE-2025-61260 수정 버전 음성 대조군",
       "status": "registered"
+    },
+    {
+      "label": "codex-current",
+      "product": "@openai/codex",
+      "version": "0.147.0",
+      "source": "npm:@openai/codex@0.147.0-linux-x64",
+      "npm_sha1": "4ee93c1bbe90a5677e0f08ab8af770dabc56aa5b",
+      "sha256": "cb0a15567e9a60a5820d54b0f6ae86d504dc3805c1eab21a47f70e3eb7b73a40",
+      "path": "harness/targets/codex-0.147.0/vendor/x86_64-unknown-linux-musl/bin/codex",
+      "archive_sha256": "c969740cf8297e4c31905cd551efeb2c99af5080c12c236bdf825598b250139a",
+      "purpose": "CVE-2025-61260 현재 버전 회귀 음성 대조군",
+      "status": "registered"
     }
   ]
 }
