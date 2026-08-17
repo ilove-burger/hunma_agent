@@ -85,7 +85,7 @@ ambient config와 exec-policy rule은 무시하고 JSONL event를 출력하며, 
 남아 있어야 하며 case 또는 대상 environment에 복사해서는 안 된다.
 
 ```bash
-./harness/analyze "prompts/mapper.md를 사용해 config trust subsystem을 매핑하세요."
+./harness/analyze "harness/prompts/mapper.md를 사용해 config trust subsystem을 매핑하세요."
 ```
 
 API key를 대상 process 또는 repository가 통제하는 코드에 노출하지 않는다. 전체 agent E2E가

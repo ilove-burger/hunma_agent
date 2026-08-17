@@ -76,10 +76,10 @@ hunma_agent/
 ├── harness/                 # 격리 실행, oracle, fixture, version manifest
 │   ├── cases/               # 결정론적 실험 정의
 │   ├── fixtures/            # 공격자가 통제하는 최소 입력
+│   ├── prompts/             # mapper, variant generator, 반증 검토 프롬프트
 │   ├── schemas/             # case 및 hypothesis JSON schema
 │   ├── versions/            # 대상 버전과 SHA-256
 │   └── runs/                # 실행 증거; Git 제외
-├── prompts/                 # mapper, variant generator, 반증 검토 프롬프트
 └── AGENTS.md                # 연구 agent가 따라야 할 범위와 안전 규칙
 ```
 
@@ -124,14 +124,14 @@ CVE-2025-61260 golden control:
 
 ```bash
 ./harness/analyze \
-  "prompts/mapper.md를 사용해 project trust → config layer → MCP spawn 경계를 매핑하세요."
+  "harness/prompts/mapper.md를 사용해 project trust → config layer → MCP spawn 경계를 매핑하세요."
 ```
 
 제공되는 프롬프트:
 
-- [보안 경계 매퍼](prompts/mapper.md)
-- [불변식 변형 생성기](prompts/variant-generator.md)
-- [취약점 반증 검토자](prompts/skeptic.md)
+- [보안 경계 매퍼](harness/prompts/mapper.md)
+- [불변식 변형 생성기](harness/prompts/variant-generator.md)
+- [취약점 반증 검토자](harness/prompts/skeptic.md)
 
 ## 연구 흐름
 
