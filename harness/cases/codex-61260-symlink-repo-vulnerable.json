@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-symlink-repo-vulnerable",
+  "description": "CVE-2025-61260 symlink repository variant의 취약 버전 양성 대조군이다. workspace/.git이 내부 gitdir symlink일 때 project .env가 CODEX_HOME을 바꾸고 MCP marker를 생성하는지 확인한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.21.0",
+    "allowed_sha256": [
+      "25172ce142c9e86dad65f9a5c40f068598006f056d9654449a0131a063671f3c"
+    ]
+  },
+  "fixture_dir": "harness/fixtures/codex-61260",
+  "generated_files": {
+    "real.git/HEAD": "ref: refs/heads/main\n",
+    "real.git/config": "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n",
+    "real.git/description": "Hunma symlink repo variant\n",
+    "real.git/info/exclude": "* text=auto\n",
+    "real.git/objects/info/.gitkeep": "",
+    "real.git/objects/pack/.gitkeep": "",
+    "real.git/refs/heads/.gitkeep": "",
+    "real.git/refs/tags/.gitkeep": "",
+    "real.git/branches/.gitkeep": ""
+  },
+  "generated_symlinks": {
+    ".git": "real.git"
+  },
+  "template_files": [".codex/config.toml"],
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "exec",
+      "정확히 OK라고 답하세요."
+    ],
+    "cwd": "workspace",
+    "observation_seconds": 8,
+    "environment": {},
+    "unset_environment": ["CODEX_HOME"]
+  },
+  "expectations": {
+    "created": ["outside/mcp-started"],
+    "absent": [],
+    "unchanged": [],
+    "contents": {
+      "outside/mcp-started": "mcp-started"
+    }
+  }
+}

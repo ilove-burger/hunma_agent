@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-symlink-repo-fixed",
+  "description": "CVE-2025-61260 symlink repository variant의 수정 버전 음성 대조군이다. workspace/.git이 내부 gitdir symlink여도 project .env가 trusted CODEX_HOME을 바꾸지 못해야 한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.22.0",
+    "allowed_sha256": [
+      "f62a5d6025f6a51d63978042e530aa7dd3a69be029b7d48ad8ac4b13ce8843cf"
+    ]
+  },
+  "fixture_dir": "harness/fixtures/codex-61260",
+  "generated_files": {
+    "real.git/HEAD": "ref: refs/heads/main\n",
+    "real.git/config": "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n",
+    "real.git/description": "Hunma symlink repo variant\n",
+    "real.git/info/exclude": "* text=auto\n",
+    "real.git/objects/info/.gitkeep": "",
+    "real.git/objects/pack/.gitkeep": "",
+    "real.git/refs/heads/.gitkeep": "",
+    "real.git/refs/tags/.gitkeep": "",
+    "real.git/branches/.gitkeep": ""
+  },
+  "generated_symlinks": {
+    ".git": "real.git"
+  },
+  "template_files": [".codex/config.toml"],
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "exec",
+      "정확히 OK라고 답하세요."
+    ],
+    "cwd": "workspace",
+    "observation_seconds": 8,
+    "environment": {},
+    "unset_environment": ["CODEX_HOME"]
+  },
+  "expectations": {
+    "created": [],
+    "absent": ["outside/mcp-started"],
+    "unchanged": [],
+    "contents": {}
+  }
+}

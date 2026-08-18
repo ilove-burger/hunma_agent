@@ -212,6 +212,7 @@ def build_summary(
                 "role": target["role"],
                 "target_label": target["target_label"],
                 "version": target["version"],
+                **({"variant": target["variant"]} if "variant" in target else {}),
                 "case": target["case"],
                 "status": target["status"],
                 "passed_attempts": passed_attempts,
@@ -225,6 +226,7 @@ def build_summary(
                     "role": target["role"],
                     "target_label": target["target_label"],
                     "version": target["version"],
+                    **({"variant": target["variant"]} if "variant" in target else {}),
                     "case": target["case"],
                     "attempt": attempt["attempt"],
                     "status": attempt["status"],
@@ -267,27 +269,17 @@ def validate_case_target(case_path: Path, entry: dict[str, Any], expected_hash: 
         raise ComparisonError(f"manifest SHA-256이 case 허용 목록에 없습니다: {case_path.stem}")
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="CVE-2025-61260을 Codex 0.21.0, 0.22.0, current에서 비교합니다."
-    )
-    parser.add_argument(
-        "--repeat",
-        type=positive_integer,
-        default=1,
-        help="각 버전의 반복 실행 횟수(기본값: 1, 최대: 10)",
-    )
-    parser.add_argument(
-        "--trace",
-        choices=("auto", "always", "never"),
-        default="auto",
-        help="각 case의 syscall trace 정책(기본값: auto)",
-    )
-    args = parser.parse_args()
-
+def run_comparison(
+    *,
+    comparison_name: str,
+    run_slug: str,
+    specs: tuple[dict[str, str], ...],
+    repeat: int,
+    trace: str,
+) -> int:
     started_at = utc_now()
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    run_dir = RUNS_ROOT / "compare-codex-61260" / f"{timestamp}-{uuid.uuid4().hex[:8]}"
+    run_dir = RUNS_ROOT / run_slug / f"{timestamp}-{uuid.uuid4().hex[:8]}"
     artifacts_dir = run_dir / "artifacts"
     artifacts_dir.mkdir(parents=True, exist_ok=False)
     events_path = artifacts_dir / "events.jsonl"
@@ -295,7 +287,7 @@ def main() -> int:
     try:
         targets = load_targets()
         prepared: list[dict[str, Any]] = []
-        for spec in COMPARISON_SPECS:
+        for spec in specs:
             label = spec["target_label"]
             entry = targets.get(label)
             if entry is None:
@@ -320,20 +312,28 @@ def main() -> int:
             emit_event(
                 events,
                 "comparison_started",
-                comparison="CVE-2025-61260",
-                repeat=args.repeat,
+                comparison=comparison_name,
+                repeat=repeat,
                 run_dir=str(run_dir),
             )
             for item in prepared:
                 attempts: list[dict[str, Any]] = []
-                for attempt_number in range(1, args.repeat + 1):
-                    stem = f"{item['role']}-attempt-{attempt_number}"
+                for attempt_number in range(1, repeat + 1):
+                    stem = "-".join(
+                        [
+                            *([item["variant"]] if "variant" in item else []),
+                            item["role"],
+                            "attempt",
+                            str(attempt_number),
+                        ]
+                    )
                     emit_event(
                         events,
                         "case_started",
                         role=item["role"],
                         target_label=item["target_label"],
                         version=item["target"]["version"],
+                        **({"variant": item["variant"]} if "variant" in item else {}),
                         case=item["case_path"].stem,
                         attempt=attempt_number,
                     )
@@ -343,7 +343,7 @@ def main() -> int:
                         "--target",
                         str(item["target_path"]),
                         "--trace",
-                        args.trace,
+                        trace,
                     ]
                     completed = subprocess.run(
                         command,
@@ -374,6 +374,7 @@ def main() -> int:
                         "status": "PASS" if passed else "FAIL",
                         "return_code": completed.returncode,
                         "child_status": child.get("status") if child else "UNPARSEABLE",
+                        **({"variant": item["variant"]} if "variant" in item else {}),
                         "child_run_dir": child.get("run_dir") if child else None,
                         "child_result_path": (
                             str(Path(child["run_dir"]) / "artifacts" / "result.json")
@@ -392,6 +393,7 @@ def main() -> int:
                         role=item["role"],
                         target_label=item["target_label"],
                         version=item["target"]["version"],
+                        **({"variant": item["variant"]} if "variant" in item else {}),
                         case=item["case_path"].stem,
                         attempt=attempt_number,
                         status=attempt["status"],
@@ -408,6 +410,7 @@ def main() -> int:
                         "target_label": item["target_label"],
                         "product": item["target"]["product"],
                         "version": item["target"]["version"],
+                        **({"variant": item["variant"]} if "variant" in item else {}),
                         "target": str(item["target_path"]),
                         "target_sha256": item["target_sha256"],
                         "case": item["case_path"].stem,
@@ -426,11 +429,11 @@ def main() -> int:
 
         result = {
             "schema_version": 1,
-            "comparison": "CVE-2025-61260",
+            "comparison": comparison_name,
             "status": status,
-            "summary": build_summary(status, args.repeat, comparison_results),
-            "repeat": args.repeat,
-            "trace_policy": args.trace,
+            "summary": build_summary(status, repeat, comparison_results),
+            "repeat": repeat,
+            "trace_policy": trace,
             "started_at": started_at,
             "completed_at": utc_now(),
             "run_dir": str(run_dir),
@@ -444,7 +447,7 @@ def main() -> int:
     except (ComparisonError, OSError) as exc:
         error = {
             "schema_version": 1,
-            "comparison": "CVE-2025-61260",
+            "comparison": comparison_name,
             "status": "ERROR",
             "started_at": started_at,
             "completed_at": utc_now(),
@@ -454,6 +457,32 @@ def main() -> int:
         json_dump(artifacts_dir / "result.json", error)
         print(json.dumps(error, ensure_ascii=False), file=sys.stderr)
         return 2
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="CVE-2025-61260을 Codex 0.21.0, 0.22.0, current에서 비교합니다."
+    )
+    parser.add_argument(
+        "--repeat",
+        type=positive_integer,
+        default=1,
+        help="각 버전의 반복 실행 횟수(기본값: 1, 최대: 10)",
+    )
+    parser.add_argument(
+        "--trace",
+        choices=("auto", "always", "never"),
+        default="auto",
+        help="각 case의 syscall trace 정책(기본값: auto)",
+    )
+    args = parser.parse_args()
+    return run_comparison(
+        comparison_name="CVE-2025-61260",
+        run_slug="compare-codex-61260",
+        specs=COMPARISON_SPECS,
+        repeat=args.repeat,
+        trace=args.trace,
+    )
 
 
 if __name__ == "__main__":

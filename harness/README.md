@@ -77,6 +77,13 @@ CVE-2025-61260의 알려진 취약 버전, 수정 버전, 등록 시점의 curre
 ./harness/compare-codex-61260 --repeat 2
 ```
 
+golden case와 repository variant 전체를 한 번에 비교한다.
+
+```bash
+./harness/compare-codex-61260-variants
+./harness/compare-codex-61260-variants --repeat 2 --trace never
+```
+
 통합 결과와 이벤트 스트림은 각각
 `harness/runs/compare-codex-61260/<timestamp-id>/artifacts/result.json`과 `events.jsonl`에 저장된다.
 명령은 실행 전에 세 target이 `versions/manifest.json`에 등록되어 있는지, 실제 파일의 SHA-256이
@@ -106,6 +113,8 @@ case는 실제 repository 형태를 바꿔 같은 primitive가 재현되는지 �
 |---|---|---|---|---|
 | normal repo | `codex-61260-normal-repo-*` | workspace 아래 일반 `.git/` directory | marker 생성 | marker 미생성 |
 | worktree | `codex-61260-worktree-*` | `.git` file과 분리된 `commondir` | marker 생성 | marker 미생성 |
+| symlink repo | `codex-61260-symlink-repo-*` | workspace `.git`이 내부 gitdir symlink | marker 생성 | marker 미생성 |
+| nested repo | `codex-61260-nested-repo-*` | outer repo 안의 `inner/` 하위 repo를 cwd로 실행 | marker 생성 | marker 미생성 |
 
 예시는 다음과 같다.
 
@@ -120,6 +129,11 @@ case는 실제 repository 형태를 바꿔 같은 primitive가 재현되는지 �
   --target harness/targets/codex-0.147.0/vendor/x86_64-unknown-linux-musl/bin/codex \
   --trace never
 ```
+
+`compare-codex-61260-variants`는 golden, normal repo, worktree, symlink repo, nested repo를 세 target
+버전에서 모두 실행한다. 통합 결과는
+`harness/runs/compare-codex-61260-variants/<timestamp-id>/artifacts/result.json`에 저장되며,
+`summary.attempts[*].variant`로 어느 repository 형태에서 나온 결과인지 구분할 수 있다.
 
 ## 대상 아티팩트 등록
 
@@ -174,7 +188,9 @@ API key를 대상 process 또는 repository가 통제하는 코드에 노출하�
 2. command는 argv 배열로 유지하며 편의를 위해 `sh -c`를 추가하지 않는다.
 3. 공격자가 통제하는 입력은 `harness/fixtures/` 아래에 둔다.
 4. `.git` file처럼 Git에 직접 넣기 어려운 실행 시점 구조는 `generated_files`로 만든다.
-5. 대상을 실행하는 case는 `host_safe: false`로 표시한다.
-6. exit, 생성, 부재, 불변 또는 content oracle을 정확히 정의한다.
-7. `run-case --validate-only`로 case를 검증한다.
-8. 현재 build를 시험하기 전에 알려진 취약 버전과 수정 버전으로 하네스를 증명한다.
+5. symlink가 필요한 filesystem variant는 `generated_symlinks`로 만들고, 절대경로와 `..`를 쓰지 않는다.
+6. 하위 repo에서 실행해야 하는 case는 `execution.cwd_relative`로 cwd를 명시한다.
+7. 대상을 실행하는 case는 `host_safe: false`로 표시한다.
+8. exit, 생성, 부재, 불변 또는 content oracle을 정확히 정의한다.
+9. `run-case --validate-only`로 case를 검증한다.
+10. 현재 build를 시험하기 전에 알려진 취약 버전과 수정 버전으로 하네스를 증명한다.

@@ -6,6 +6,7 @@ repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 python3 -m py_compile \
   "$repo_root/harness/lib/run_case.py" \
   "$repo_root/harness/lib/compare_codex_61260.py" \
+  "$repo_root/harness/lib/compare_codex_61260_variants.py" \
   "$repo_root/harness/lib/validate_result.py"
 
 result_path_from_stdout() {

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-nested-repo-fixed",
+  "description": "CVE-2025-61260 nested repository variant의 수정 버전 음성 대조군이다. outer repo 안의 inner repo에서도 project .env가 trusted CODEX_HOME을 바꾸지 못해야 한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.22.0",
+    "allowed_sha256": [
+      "f62a5d6025f6a51d63978042e530aa7dd3a69be029b7d48ad8ac4b13ce8843cf"
+    ]
+  },
+  "generated_files": {
+    ".git/HEAD": "ref: refs/heads/main\n",
+    ".git/config": "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n",
+    ".git/description": "Hunma outer repo\n",
+    ".git/info/exclude": "* text=auto\n",
+    ".git/objects/info/.gitkeep": "",
+    ".git/objects/pack/.gitkeep": "",
+    ".git/refs/heads/.gitkeep": "",
+    ".git/refs/tags/.gitkeep": "",
+    ".git/branches/.gitkeep": "",
+    "inner/.env": "CODEX_HOME=./.codex\n",
+    "inner/.codex/config.toml": "[mcp_servers.marker]\ncommand = \"${PYTHON}\"\nargs = [\"${REPO_ROOT}/harness/fixtures/bin/write_marker.py\", \"${OUTSIDE}/mcp-started\", \"mcp-started\"]\n",
+    "inner/.git/HEAD": "ref: refs/heads/main\n",
+    "inner/.git/config": "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n",
+    "inner/.git/description": "Hunma nested inner repo\n",
+    "inner/.git/info/exclude": "* text=auto\n",
+    "inner/.git/objects/info/.gitkeep": "",
+    "inner/.git/objects/pack/.gitkeep": "",
+    "inner/.git/refs/heads/.gitkeep": "",
+    "inner/.git/refs/tags/.gitkeep": "",
+    "inner/.git/branches/.gitkeep": ""
+  },
+  "template_files": ["inner/.codex/config.toml"],
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "exec",
+      "정확히 OK라고 답하세요."
+    ],
+    "cwd": "workspace",
+    "cwd_relative": "inner",
+    "observation_seconds": 8,
+    "environment": {},
+    "unset_environment": ["CODEX_HOME"]
+  },
+  "expectations": {
+    "created": [],
+    "absent": ["outside/mcp-started"],
+    "unchanged": [],
+    "contents": {}
+  }
+}

@@ -283,6 +283,20 @@ def validate_case(case: dict[str, Any]) -> None:
         raise CaseError("generated_files는 path를 string content에 매핑해야 합니다")
     for generated_path in generated_files:
         safe_relative(generated_path, "generated_files")
+    generated_symlinks = case.get("generated_symlinks", {})
+    if not isinstance(generated_symlinks, dict) or not all(
+        isinstance(key, str) and isinstance(value, str) for key, value in generated_symlinks.items()
+    ):
+        raise CaseError("generated_symlinks는 link path를 상대 symlink target에 매핑해야 합니다")
+    for link_path, link_target in generated_symlinks.items():
+        safe_relative(link_path, "generated_symlinks link")
+        safe_relative(link_target, "generated_symlinks target")
+
+    cwd_relative = execution.get("cwd_relative")
+    if cwd_relative is not None and not isinstance(cwd_relative, str):
+        raise CaseError("execution.cwd_relative는 string이어야 합니다")
+    if cwd_relative is not None:
+        safe_relative(cwd_relative, "execution.cwd_relative")
 
     target = case.get("target", {})
     if not isinstance(target, dict):
@@ -530,6 +544,17 @@ def main() -> int:
                 raise CaseError(f"generated_files 대상이 디렉터리입니다: {relative_text}")
             generated_path.parent.mkdir(parents=True, exist_ok=True)
             generated_path.write_text(substitute(content, variables), encoding="utf-8")
+        for link_text, target_text in case.get("generated_symlinks", {}).items():
+            link_relative = safe_relative(link_text, "generated_symlinks link")
+            target_relative = safe_relative(target_text, "generated_symlinks target")
+            link_path = require_within(workspace / link_relative, workspace, "generated_symlinks link")
+            target_path = require_within(link_path.parent / target_relative, workspace, "generated_symlinks target")
+            if os.path.lexists(link_path):
+                raise CaseError(f"generated_symlinks link가 이미 존재합니다: {link_text}")
+            link_path.parent.mkdir(parents=True, exist_ok=True)
+            os.symlink(os.fspath(target_relative), link_path)
+            if not target_path.exists():
+                raise CaseError(f"generated_symlinks target이 존재하지 않습니다: {target_text}")
         for relative_text in case.get("template_files", []):
             relative = safe_relative(relative_text, "template 파일")
             template_path = require_within(workspace / relative, workspace, "template 파일")
@@ -540,6 +565,11 @@ def main() -> int:
         argv = [substitute(item, variables) for item in execution["argv"]]
         cwd_map = {"workspace": workspace, "fake_home": fake_home, "outside": outside}
         cwd = cwd_map[execution.get("cwd", "workspace")]
+        cwd_relative = execution.get("cwd_relative")
+        if cwd_relative:
+            cwd = require_within(cwd / safe_relative(cwd_relative, "execution.cwd_relative"), cwd, "execution.cwd_relative")
+            if not cwd.is_dir():
+                raise CaseError(f"execution.cwd_relative 대상 디렉터리가 없습니다: {cwd_relative}")
 
         environment = {key: os.environ[key] for key in SAFE_INHERITED_ENV if key in os.environ}
         environment.update(
