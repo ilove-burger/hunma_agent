@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import uuid
@@ -139,6 +140,114 @@ def parse_child_result(stdout: str) -> dict[str, Any] | None:
     return value if isinstance(value, dict) else None
 
 
+def parse_exists_after(detail: str) -> bool | None:
+    match = re.search(r"실행 후=(True|False)", detail)
+    if not match:
+        return None
+    return match.group(1) == "True"
+
+
+def marker_state(exists_after: bool | None) -> str:
+    if exists_after is True:
+        return "present"
+    if exists_after is False:
+        return "absent"
+    return "unknown"
+
+
+def extract_marker_observations(child: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if child is None:
+        return []
+    checks = child.get("checks")
+    if not isinstance(checks, list):
+        return []
+
+    observations: list[dict[str, Any]] = []
+    for check in checks:
+        if not isinstance(check, dict):
+            continue
+        name = check.get("name")
+        if not isinstance(name, str) or ":" not in name:
+            continue
+        expectation, path = name.split(":", 1)
+        if expectation not in ("created", "absent"):
+            continue
+        detail = check.get("detail", "")
+        detail_text = detail if isinstance(detail, str) else str(detail)
+        exists_after = parse_exists_after(detail_text)
+        observations.append(
+            {
+                "path": path,
+                "expectation": expectation,
+                "observed": marker_state(exists_after),
+                "exists_after": exists_after,
+                "passed": bool(check.get("passed")),
+                "detail": detail_text,
+            }
+        )
+    return observations
+
+
+def format_marker_summary(observations: list[dict[str, Any]]) -> str:
+    if not observations:
+        return "none"
+    return ", ".join(
+        f"{item['path']}={item['observed']} expected={item['expectation']}"
+        for item in observations
+    )
+
+
+def build_summary(
+    status: str, repeat: int, comparison_results: list[dict[str, Any]]
+) -> dict[str, Any]:
+    attempts: list[dict[str, Any]] = []
+    targets: list[dict[str, Any]] = []
+
+    for target in comparison_results:
+        target_attempts = target["attempts"]
+        passed_attempts = sum(1 for attempt in target_attempts if attempt["status"] == "PASS")
+        failed_attempts = len(target_attempts) - passed_attempts
+        targets.append(
+            {
+                "role": target["role"],
+                "target_label": target["target_label"],
+                "version": target["version"],
+                "case": target["case"],
+                "status": target["status"],
+                "passed_attempts": passed_attempts,
+                "failed_attempts": failed_attempts,
+                "expected_observation": target["expected_observation"],
+            }
+        )
+        for attempt in target_attempts:
+            attempts.append(
+                {
+                    "role": target["role"],
+                    "target_label": target["target_label"],
+                    "version": target["version"],
+                    "case": target["case"],
+                    "attempt": attempt["attempt"],
+                    "status": attempt["status"],
+                    "run_dir": attempt["child_run_dir"],
+                    "result_path": attempt["child_result_path"],
+                    "marker_summary": attempt["marker_summary"],
+                    "marker_observations": attempt["marker_observations"],
+                }
+            )
+
+    passed_attempts = sum(1 for attempt in attempts if attempt["status"] == "PASS")
+    failed_attempts = len(attempts) - passed_attempts
+    return {
+        "status": status,
+        "repeat": repeat,
+        "total_attempts": len(attempts),
+        "passed_attempts": passed_attempts,
+        "failed_attempts": failed_attempts,
+        "targets": targets,
+        "attempts": attempts,
+    }
+
+
 def validate_case_target(case_path: Path, entry: dict[str, Any], expected_hash: str) -> None:
     try:
         case = json.loads(case_path.read_text(encoding="utf-8"))
@@ -252,6 +361,7 @@ def main() -> int:
                     )
 
                     child = parse_child_result(completed.stdout)
+                    marker_observations = extract_marker_observations(child)
                     passed = bool(
                         completed.returncode == 0
                         and child is not None
@@ -270,6 +380,8 @@ def main() -> int:
                             if child and isinstance(child.get("run_dir"), str)
                             else None
                         ),
+                        "marker_summary": format_marker_summary(marker_observations),
+                        "marker_observations": marker_observations,
                         "stdout_log": str(artifacts_dir / f"{stem}.stdout.log"),
                         "stderr_log": str(artifacts_dir / f"{stem}.stderr.log"),
                     }
@@ -284,7 +396,10 @@ def main() -> int:
                         attempt=attempt_number,
                         status=attempt["status"],
                         return_code=completed.returncode,
+                        child_run_dir=attempt["child_run_dir"],
                         child_result_path=attempt["child_result_path"],
+                        marker_summary=attempt["marker_summary"],
+                        marker_observations=attempt["marker_observations"],
                     )
 
                 comparison_results.append(
@@ -313,6 +428,7 @@ def main() -> int:
             "schema_version": 1,
             "comparison": "CVE-2025-61260",
             "status": status,
+            "summary": build_summary(status, args.repeat, comparison_results),
             "repeat": args.repeat,
             "trace_policy": args.trace,
             "started_at": started_at,

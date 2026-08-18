@@ -78,6 +78,9 @@ CVE-2025-61260의 알려진 취약 버전, 수정 버전, 등록 시점의 curre
 명령은 실행 전에 세 target이 `versions/manifest.json`에 등록되어 있는지, 실제 파일의 SHA-256이
 manifest와 일치하는지 검증한다. 개별 case의 stdout·stderr와 원본 `result.json` 경로도 통합 결과에
 기록한다.
+`result.json`의 `summary.attempts`에는 반복 실행별 `status`, child `run_dir`, 원본 결과 경로,
+`outside/mcp-started`의 관찰 상태가 납작하게 기록된다. `summary.targets`는 버전별 반복 성공·실패
+수를 집계하므로 golden case가 취약·수정·current에서 기대대로 갈라졌는지 빠르게 확인할 수 있다.
 
 `strace`가 설치되어 있으면 syscall trace를 자동으로 수집한다. 비활성화하려면 `--trace never`,
 필수로 요구하려면 `--trace always`를 사용한다.
