@@ -55,13 +55,52 @@ VARIANT_SPECS = (
         "case_prefix": "codex-61260-nested-repo",
         "description": "outer repository 안의 inner repository",
     },
+    {
+        "variant": "gitdir-commondir",
+        "case_prefix": "codex-61260-gitdir-commondir",
+        "description": ".git file, gitdir, commondir가 분리된 repository",
+    },
+    {
+        "variant": "config-reload",
+        "case_prefix": "codex-61260-config-reload",
+        "description": "project .env가 CODEX_HOME을 reload-home으로 재지정한 뒤 config root가 다시 해석되는 boundary",
+    },
+    {
+        "variant": "session-resume",
+        "case_prefix": "codex-61260-session-resume",
+        "description": "current CLI의 exec resume lifecycle boundary",
+        "roles": ("current",),
+    },
 )
 
 
-def build_specs() -> tuple[dict[str, str], ...]:
+def parse_variant_filter(value: str | None) -> tuple[str, ...] | None:
+    if value is None:
+        return None
+    requested = tuple(dict.fromkeys(item.strip() for item in value.split(",") if item.strip()))
+    if not requested:
+        raise argparse.ArgumentTypeError("--variant에는 하나 이상의 variant 이름이 필요합니다")
+    known = {item["variant"] for item in VARIANT_SPECS}
+    unknown = sorted(set(requested) - known)
+    if unknown:
+        raise argparse.ArgumentTypeError(
+            "알 수 없는 variant입니다: "
+            + ", ".join(unknown)
+            + ". 가능한 값: "
+            + ", ".join(sorted(known))
+        )
+    return requested
+
+
+def build_specs(selected_variants: tuple[str, ...] | None = None) -> tuple[dict[str, str], ...]:
     specs: list[dict[str, str]] = []
     for variant in VARIANT_SPECS:
+        if selected_variants is not None and variant["variant"] not in selected_variants:
+            continue
+        enabled_roles = set(variant.get("roles", (role["role"] for role in ROLE_SPECS)))
         for role in ROLE_SPECS:
+            if role["role"] not in enabled_roles:
+                continue
             specs.append(
                 {
                     "variant": variant["variant"],
@@ -73,6 +112,8 @@ def build_specs() -> tuple[dict[str, str], ...]:
                     ),
                 }
             )
+    if not specs:
+        raise ValueError("선택된 variant에 실행할 case가 없습니다")
     return tuple(specs)
 
 
@@ -95,11 +136,19 @@ def main() -> int:
         default="auto",
         help="각 case의 syscall trace 정책(기본값: auto)",
     )
+    parser.add_argument(
+        "--variant",
+        type=parse_variant_filter,
+        help=(
+            "실행할 variant를 쉼표로 제한합니다. 예: "
+            "--variant symlink-repo,nested-repo"
+        ),
+    )
     args = parser.parse_args()
     return run_comparison(
         comparison_name="CVE-2025-61260-variants",
         run_slug="compare-codex-61260-variants",
-        specs=build_specs(),
+        specs=build_specs(args.variant),
         repeat=args.repeat,
         trace=args.trace,
     )

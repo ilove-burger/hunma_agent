@@ -82,6 +82,7 @@ golden case와 repository variant 전체를 한 번에 비교한다.
 ```bash
 ./harness/compare-codex-61260-variants
 ./harness/compare-codex-61260-variants --repeat 2 --trace never
+./harness/compare-codex-61260-variants --variant symlink-repo,nested-repo --trace never
 ```
 
 통합 결과와 이벤트 스트림은 각각
@@ -92,6 +93,9 @@ manifest와 일치하는지 검증한다. 개별 case의 stdout·stderr와 원�
 `result.json`의 `summary.attempts`에는 반복 실행별 `status`, child `run_dir`, 원본 결과 경로,
 `outside/mcp-started`의 관찰 상태가 납작하게 기록된다. `summary.targets`는 버전별 반복 성공·실패
 수를 집계하므로 golden case가 취약·수정·current에서 기대대로 갈라졌는지 빠르게 확인할 수 있다.
+variant 비교 결과에는 `summary.summary_table`도 포함된다. 이 matrix는 row를 variant로, column을
+`known-vulnerable`, `known-fixed`, `current`로 두고 각 cell에 PASS/FAIL과 marker 관찰 요약을 저장한다.
+특정 버전에 적용할 수 없는 lifecycle case는 cell을 `null`로 기록한다.
 case 결과와 비교 결과의 형식은 각각 `schemas/case-result.schema.json`,
 `schemas/compare-result.schema.json`으로 고정한다. `validate-result`는 Python `jsonschema` package를
 사용한다.
@@ -115,6 +119,9 @@ case는 실제 repository 형태를 바꿔 같은 primitive가 재현되는지 �
 | worktree | `codex-61260-worktree-*` | `.git` file과 분리된 `commondir` | marker 생성 | marker 미생성 |
 | symlink repo | `codex-61260-symlink-repo-*` | workspace `.git`이 내부 gitdir symlink | marker 생성 | marker 미생성 |
 | nested repo | `codex-61260-nested-repo-*` | outer repo 안의 `inner/` 하위 repo를 cwd로 실행 | marker 생성 | marker 미생성 |
+| gitdir/commondir | `codex-61260-gitdir-commondir-*` | `.git` file, gitdir, commondir가 분리된 repository | marker 생성 | marker 미생성 |
+| config reload | `codex-61260-config-reload-*` | `.env`가 `CODEX_HOME=./reload-home`으로 config root를 재지정 | marker 생성 | marker 미생성 |
+| session resume | `codex-61260-session-resume-current` | current CLI의 `exec resume` lifecycle | N/A | current에서 marker 미생성 |
 
 예시는 다음과 같다.
 
@@ -130,10 +137,12 @@ case는 실제 repository 형태를 바꿔 같은 primitive가 재현되는지 �
   --trace never
 ```
 
-`compare-codex-61260-variants`는 golden, normal repo, worktree, symlink repo, nested repo를 세 target
-버전에서 모두 실행한다. 통합 결과는
+`compare-codex-61260-variants`는 golden, normal repo, worktree, symlink repo, nested repo,
+gitdir/commondir, config reload를 세 target 버전에서 실행하고, session resume은 current 전용으로
+실행한다. 통합 결과는
 `harness/runs/compare-codex-61260-variants/<timestamp-id>/artifacts/result.json`에 저장되며,
-`summary.attempts[*].variant`로 어느 repository 형태에서 나온 결과인지 구분할 수 있다.
+`summary.attempts[*].variant`로 어느 repository 형태에서 나온 결과인지 구분할 수 있다. 전체 variant를
+항상 돌릴 필요가 없으면 `--variant symlink-repo,nested-repo`처럼 쉼표로 범위를 제한한다.
 
 ## 대상 아티팩트 등록
 

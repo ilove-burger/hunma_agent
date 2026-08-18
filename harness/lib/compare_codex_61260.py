@@ -21,6 +21,7 @@ RUNS_ROOT = HARNESS_ROOT / "runs"
 TARGETS_ROOT = HARNESS_ROOT / "targets"
 MANIFEST_PATH = HARNESS_ROOT / "versions" / "manifest.json"
 RUN_ISOLATED = HARNESS_ROOT / "run-isolated"
+ROLE_ORDER = ("known-vulnerable", "known-fixed", "current")
 
 COMPARISON_SPECS = (
     {
@@ -197,6 +198,37 @@ def format_marker_summary(observations: list[dict[str, Any]]) -> str:
     )
 
 
+def build_summary_table(comparison_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not any("variant" in item for item in comparison_results):
+        return []
+
+    variants = list(dict.fromkeys(item.get("variant", "default") for item in comparison_results))
+    rows: list[dict[str, Any]] = []
+    for variant in variants:
+        row: dict[str, Any] = {"variant": variant}
+        for role in ROLE_ORDER:
+            matching = [
+                item
+                for item in comparison_results
+                if item.get("variant", "default") == variant and item["role"] == role
+            ]
+            if not matching:
+                row[role] = None
+                continue
+            item = matching[0]
+            attempts = item["attempts"]
+            marker_summaries = list(dict.fromkeys(attempt["marker_summary"] for attempt in attempts))
+            row[role] = {
+                "status": item["status"],
+                "case": item["case"],
+                "passed_attempts": sum(1 for attempt in attempts if attempt["status"] == "PASS"),
+                "failed_attempts": sum(1 for attempt in attempts if attempt["status"] == "FAIL"),
+                "marker_summary": "; ".join(marker_summaries),
+            }
+        rows.append(row)
+    return rows
+
+
 def build_summary(
     status: str, repeat: int, comparison_results: list[dict[str, Any]]
 ) -> dict[str, Any]:
@@ -239,7 +271,7 @@ def build_summary(
 
     passed_attempts = sum(1 for attempt in attempts if attempt["status"] == "PASS")
     failed_attempts = len(attempts) - passed_attempts
-    return {
+    summary = {
         "status": status,
         "repeat": repeat,
         "total_attempts": len(attempts),
@@ -248,6 +280,10 @@ def build_summary(
         "targets": targets,
         "attempts": attempts,
     }
+    summary_table = build_summary_table(comparison_results)
+    if summary_table:
+        summary["summary_table"] = summary_table
+    return summary
 
 
 def validate_case_target(case_path: Path, entry: dict[str, Any], expected_hash: str) -> None:

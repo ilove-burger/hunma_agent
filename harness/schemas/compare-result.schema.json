@@ -30,7 +30,7 @@
         "events_path": {"type": "string", "minLength": 1},
         "targets": {
           "type": "array",
-          "minItems": 3,
+          "minItems": 1,
           "items": {"$ref": "#/$defs/target_result"}
         }
       },
@@ -84,7 +84,46 @@
         "attempts": {
           "type": "array",
           "items": {"$ref": "#/$defs/attempt_summary"}
+        },
+        "summary_table": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/summary_table_row"}
         }
+      },
+      "additionalProperties": false
+    },
+    "summary_table_row": {
+      "type": "object",
+      "required": ["variant", "known-vulnerable", "known-fixed", "current"],
+      "properties": {
+        "variant": {"type": "string", "minLength": 1},
+        "known-vulnerable": {"$ref": "#/$defs/summary_table_cell_nullable"},
+        "known-fixed": {"$ref": "#/$defs/summary_table_cell_nullable"},
+        "current": {"$ref": "#/$defs/summary_table_cell_nullable"}
+      },
+      "additionalProperties": false
+    },
+    "summary_table_cell_nullable": {
+      "oneOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/summary_table_cell"}
+      ]
+    },
+    "summary_table_cell": {
+      "type": "object",
+      "required": [
+        "status",
+        "case",
+        "passed_attempts",
+        "failed_attempts",
+        "marker_summary"
+      ],
+      "properties": {
+        "status": {"enum": ["PASS", "FAIL"]},
+        "case": {"type": "string", "minLength": 1},
+        "passed_attempts": {"type": "integer", "minimum": 0},
+        "failed_attempts": {"type": "integer", "minimum": 0},
+        "marker_summary": {"type": "string"}
       },
       "additionalProperties": false
     },
