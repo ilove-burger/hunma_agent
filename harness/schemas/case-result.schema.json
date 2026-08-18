@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hunma case result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case",
+    "status",
+    "run_dir",
+    "duration_seconds",
+    "exit_code",
+    "timed_out",
+    "observation_mode",
+    "observation_window_elapsed",
+    "trace_enabled",
+    "trace_reason",
+    "target",
+    "target_sha256",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "case": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$"},
+    "status": {"enum": ["PASS", "FAIL", "INCONCLUSIVE"]},
+    "run_dir": {"type": "string", "minLength": 1},
+    "duration_seconds": {"type": "number", "minimum": 0},
+    "exit_code": {"type": ["integer", "null"]},
+    "timed_out": {"type": "boolean"},
+    "observation_mode": {"type": "boolean"},
+    "observation_window_elapsed": {"type": "boolean"},
+    "trace_enabled": {"type": "boolean"},
+    "trace_reason": {"type": "string"},
+    "target": {"type": ["string", "null"]},
+    "target_sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

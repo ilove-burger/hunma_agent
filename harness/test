@@ -5,11 +5,23 @@ repo_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 
 python3 -m py_compile \
   "$repo_root/harness/lib/run_case.py" \
-  "$repo_root/harness/lib/compare_codex_61260.py"
+  "$repo_root/harness/lib/compare_codex_61260.py" \
+  "$repo_root/harness/lib/validate_result.py"
+
+result_path_from_stdout() {
+  python3 -c 'import json, pathlib, sys; value=json.load(sys.stdin); print(pathlib.Path(value["run_dir"]) / "artifacts" / "result.json")'
+}
 
 while IFS= read -r case_file; do
   "$repo_root/harness/run-case" --validate-only "$case_file"
 done < <(find "$repo_root/harness/cases" -maxdepth 1 -type f -name '*.json' -print | sort)
 
-"$repo_root/harness/run-case" "$repo_root/harness/cases/selftest-marker.json"
-"$repo_root/harness/run-case" "$repo_root/harness/cases/selftest-negative.json"
+marker_output=$("$repo_root/harness/run-case" "$repo_root/harness/cases/selftest-marker.json")
+printf '%s\n' "$marker_output"
+marker_result=$(printf '%s\n' "$marker_output" | result_path_from_stdout)
+"$repo_root/harness/validate-result" case "$marker_result"
+
+negative_output=$("$repo_root/harness/run-case" "$repo_root/harness/cases/selftest-negative.json")
+printf '%s\n' "$negative_output"
+negative_result=$(printf '%s\n' "$negative_output" | result_path_from_stdout)
+"$repo_root/harness/validate-result" case "$negative_result"

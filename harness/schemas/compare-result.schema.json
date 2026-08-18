@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hunma CVE-2025-61260 comparison result",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "comparison",
+        "status",
+        "summary",
+        "repeat",
+        "trace_policy",
+        "started_at",
+        "completed_at",
+        "run_dir",
+        "events_path",
+        "targets"
+      ],
+      "properties": {
+        "schema_version": {"const": 1},
+        "comparison": {"const": "CVE-2025-61260"},
+        "status": {"enum": ["PASS", "FAIL"]},
+        "summary": {"$ref": "#/$defs/summary"},
+        "repeat": {"type": "integer", "minimum": 1, "maximum": 10},
+        "trace_policy": {"enum": ["auto", "always", "never"]},
+        "started_at": {"type": "string", "minLength": 1},
+        "completed_at": {"type": "string", "minLength": 1},
+        "run_dir": {"type": "string", "minLength": 1},
+        "events_path": {"type": "string", "minLength": 1},
+        "targets": {
+          "type": "array",
+          "minItems": 3,
+          "items": {"$ref": "#/$defs/target_result"}
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "comparison",
+        "status",
+        "started_at",
+        "completed_at",
+        "run_dir",
+        "error"
+      ],
+      "properties": {
+        "schema_version": {"const": 1},
+        "comparison": {"const": "CVE-2025-61260"},
+        "status": {"const": "ERROR"},
+        "started_at": {"type": "string", "minLength": 1},
+        "completed_at": {"type": "string", "minLength": 1},
+        "run_dir": {"type": "string", "minLength": 1},
+        "error": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  ],
+  "$defs": {
+    "summary": {
+      "type": "object",
+      "required": [
+        "status",
+        "repeat",
+        "total_attempts",
+        "passed_attempts",
+        "failed_attempts",
+        "targets",
+        "attempts"
+      ],
+      "properties": {
+        "status": {"enum": ["PASS", "FAIL"]},
+        "repeat": {"type": "integer", "minimum": 1, "maximum": 10},
+        "total_attempts": {"type": "integer", "minimum": 0},
+        "passed_attempts": {"type": "integer", "minimum": 0},
+        "failed_attempts": {"type": "integer", "minimum": 0},
+        "targets": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/target_summary"}
+        },
+        "attempts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/attempt_summary"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "target_summary": {
+      "type": "object",
+      "required": [
+        "role",
+        "target_label",
+        "version",
+        "case",
+        "status",
+        "passed_attempts",
+        "failed_attempts",
+        "expected_observation"
+      ],
+      "properties": {
+        "role": {"enum": ["known-vulnerable", "known-fixed", "current"]},
+        "target_label": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "case": {"type": "string", "minLength": 1},
+        "status": {"enum": ["PASS", "FAIL"]},
+        "passed_attempts": {"type": "integer", "minimum": 0},
+        "failed_attempts": {"type": "integer", "minimum": 0},
+        "expected_observation": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "attempt_summary": {
+      "type": "object",
+      "required": [
+        "role",
+        "target_label",
+        "version",
+        "case",
+        "attempt",
+        "status",
+        "run_dir",
+        "result_path",
+        "marker_summary",
+        "marker_observations"
+      ],
+      "properties": {
+        "role": {"enum": ["known-vulnerable", "known-fixed", "current"]},
+        "target_label": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "case": {"type": "string", "minLength": 1},
+        "attempt": {"type": "integer", "minimum": 1},
+        "status": {"enum": ["PASS", "FAIL"]},
+        "run_dir": {"type": ["string", "null"]},
+        "result_path": {"type": ["string", "null"]},
+        "marker_summary": {"type": "string"},
+        "marker_observations": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/marker_observation"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "target_result": {
+      "type": "object",
+      "required": [
+        "role",
+        "target_label",
+        "product",
+        "version",
+        "target",
+        "target_sha256",
+        "case",
+        "expected_observation",
+        "status",
+        "attempts"
+      ],
+      "properties": {
+        "role": {"enum": ["known-vulnerable", "known-fixed", "current"]},
+        "target_label": {"type": "string", "minLength": 1},
+        "product": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "target": {"type": "string", "minLength": 1},
+        "target_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "case": {"type": "string", "minLength": 1},
+        "expected_observation": {"type": "string", "minLength": 1},
+        "status": {"enum": ["PASS", "FAIL"]},
+        "attempts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/target_attempt"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "target_attempt": {
+      "type": "object",
+      "required": [
+        "attempt",
+        "status",
+        "return_code",
+        "child_status",
+        "child_run_dir",
+        "child_result_path",
+        "marker_summary",
+        "marker_observations",
+        "stdout_log",
+        "stderr_log"
+      ],
+      "properties": {
+        "attempt": {"type": "integer", "minimum": 1},
+        "status": {"enum": ["PASS", "FAIL"]},
+        "return_code": {"type": "integer"},
+        "child_status": {"type": "string", "minLength": 1},
+        "child_run_dir": {"type": ["string", "null"]},
+        "child_result_path": {"type": ["string", "null"]},
+        "marker_summary": {"type": "string"},
+        "marker_observations": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/marker_observation"}
+        },
+        "stdout_log": {"type": "string", "minLength": 1},
+        "stderr_log": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "marker_observation": {
+      "type": "object",
+      "required": [
+        "path",
+        "expectation",
+        "observed",
+        "exists_after",
+        "passed",
+        "detail"
+      ],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "expectation": {"enum": ["created", "absent"]},
+        "observed": {"enum": ["present", "absent", "unknown"]},
+        "exists_after": {"type": ["boolean", "null"]},
+        "passed": {"type": "boolean"},
+        "detail": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

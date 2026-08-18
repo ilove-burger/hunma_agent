@@ -81,6 +81,14 @@ manifest와 일치하는지 검증한다. 개별 case의 stdout·stderr와 원�
 `result.json`의 `summary.attempts`에는 반복 실행별 `status`, child `run_dir`, 원본 결과 경로,
 `outside/mcp-started`의 관찰 상태가 납작하게 기록된다. `summary.targets`는 버전별 반복 성공·실패
 수를 집계하므로 golden case가 취약·수정·current에서 기대대로 갈라졌는지 빠르게 확인할 수 있다.
+case 결과와 비교 결과의 형식은 각각 `schemas/case-result.schema.json`,
+`schemas/compare-result.schema.json`으로 고정한다. `validate-result`는 Python `jsonschema` package를
+사용한다.
+
+```bash
+./harness/validate-result case harness/runs/<case>/<run>/artifacts/result.json
+./harness/validate-result compare harness/runs/compare-codex-61260/<run>/artifacts/result.json
+```
 
 `strace`가 설치되어 있으면 syscall trace를 자동으로 수집한다. 비활성화하려면 `--trace never`,
 필수로 요구하려면 `--trace always`를 사용한다.

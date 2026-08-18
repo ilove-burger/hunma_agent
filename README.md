@@ -77,7 +77,7 @@ hunma_agent/
 │   ├── cases/               # 결정론적 실험 정의
 │   ├── fixtures/            # 공격자가 통제하는 최소 입력
 │   ├── prompts/             # mapper, variant generator, 반증 검토 프롬프트
-│   ├── schemas/             # case 및 hypothesis JSON schema
+│   ├── schemas/             # case, result, hypothesis JSON schema
 │   ├── versions/            # 대상 버전과 SHA-256
 │   └── runs/                # 실행 증거; Git 제외
 └── AGENTS.md                # 연구 agent가 따라야 할 범위와 안전 규칙
