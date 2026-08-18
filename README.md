@@ -99,7 +99,11 @@ hunma_agent/
 ```bash
 ./harness/test
 ./harness/run-isolated harness/cases/selftest-marker.json
+./harness/run-isolated harness/cases/selftest-negative.json
 ```
+
+`selftest-marker`는 marker 생성 관찰이 동작하는지 확인하고, `selftest-negative`는 대상이 아무 작업도
+하지 않을 때 하네스가 marker를 잘못 만들지 않는지 확인한다.
 
 CVE-2025-61260의 취약·수정·current 골든 비교:
 

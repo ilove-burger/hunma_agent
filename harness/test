@@ -12,3 +12,4 @@ while IFS= read -r case_file; do
 done < <(find "$repo_root/harness/cases" -maxdepth 1 -type f -name '*.json' -print | sort)
 
 "$repo_root/harness/run-case" "$repo_root/harness/cases/selftest-marker.json"
+"$repo_root/harness/run-case" "$repo_root/harness/cases/selftest-negative.json"

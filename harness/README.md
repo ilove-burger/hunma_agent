@@ -33,12 +33,19 @@ self-test만 실행한다.
 
 ```bash
 ./harness/run-case harness/cases/selftest-marker.json
+./harness/run-case harness/cases/selftest-negative.json
 ```
+
+`selftest-marker`는 runner가 marker 생성과 content oracle을 관찰할 수 있는지 확인하는 양성
+self-test다. `selftest-negative`는 대상 명령이 아무 작업도 하지 않을 때 `outside/negative-marker`가
+끝까지 없어야 한다는 음성 대조군이다. 두 case가 모두 PASS여야 하네스의 기본 관찰 경로를 신뢰할 수
+있다.
 
 제공된 Linux 외부 sandbox 안에서 case를 실행한다.
 
 ```bash
 ./harness/run-isolated harness/cases/selftest-marker.json
+./harness/run-isolated harness/cases/selftest-negative.json
 ```
 
 `run-isolated`는 bubblewrap으로 user, PID, network, UTS, IPC namespace를 분리한다. host root를

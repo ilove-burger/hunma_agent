@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "selftest-negative",
+  "description": "대상이 아무 marker도 만들지 않을 때 하네스가 외부 marker를 잘못 생성하지 않는지 검증한다.",
+  "safety": {
+    "host_safe": true,
+    "network": "inherit"
+  },
+  "execution": {
+    "argv": [
+      "${PYTHON}",
+      "-c",
+      "pass"
+    ],
+    "cwd": "workspace",
+    "timeout_seconds": 10,
+    "environment": {}
+  },
+  "expectations": {
+    "exit_codes": [0],
+    "created": [],
+    "absent": ["outside/negative-marker"],
+    "unchanged": [],
+    "contents": {}
+  }
+}
