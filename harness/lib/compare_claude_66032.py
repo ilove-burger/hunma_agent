@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-"""CVE-2025-61260의 취약·수정·현재 버전을 동일 조건으로 비교한다."""
+"""CVE-2025-66032의 취약·수정·현재 버전을 동일 조건으로 비교한다.
+
+Claude Code의 read-only Bash classifier가 `sort --compress-program sh`를
+auto-approve하는지 확인하는 golden case다. 실제 model 응답 대신
+`harness/fixtures/claude-66032`의 loopback-only mock Anthropic Messages API가
+deterministic `Bash` tool_use를 제공하고, `run_with_mock.py`가 실제 Claude Code
+CLI artifact의 permission classifier와 host shell을 그대로 실행한다.
+
+이 파일은 `compare_codex_61260.py`와 같은 구조(json_dump/emit_event/load_targets/
+run_comparison/export 함수)를 의도적으로 별도 구현으로 유지한다. 두 CVE는
+ROLE_ORDER는 같지만 marker path와 comparison narrative가 다르고, 이미 검증된
+Codex 스크립트를 이 CVE 때문에 건드리고 싶지 않기 때문이다. 세 번째 golden target이
+생기면 공통 유틸을 별도 lib로 뽑는 편이 낫다.
+"""
 
 from __future__ import annotations
 
@@ -27,21 +40,24 @@ ROLE_ORDER = ("known-vulnerable", "known-fixed", "current")
 COMPARISON_SPECS = (
     {
         "role": "known-vulnerable",
-        "target_label": "codex-0.21.0",
-        "case": "codex-61260-vulnerable.json",
-        "expected_observation": "outside/mcp-started 생성",
+        "target_label": "claude-code-1.0.92",
+        "case": "claude-66032-sort-compress-vulnerable.json",
+        "expected_observation": "permission_denials 비어 있음, outside/sort-marker 생성",
+        "variant": "sort-compress-program",
     },
     {
         "role": "known-fixed",
-        "target_label": "codex-0.22.0",
-        "case": "codex-61260-fixed.json",
-        "expected_observation": "outside/mcp-started 미생성",
+        "target_label": "claude-code-1.0.93",
+        "case": "claude-66032-sort-compress-fixed.json",
+        "expected_observation": "permission_denials에 Bash 항목 존재, outside/sort-marker 미생성",
+        "variant": "sort-compress-program",
     },
     {
         "role": "current",
-        "target_label": "codex-current",
-        "case": "codex-61260-current.json",
-        "expected_observation": "outside/mcp-started 미생성",
+        "target_label": "claude-code-current",
+        "case": "claude-66032-sort-compress-current.json",
+        "expected_observation": "permission_denials에 Bash 항목 존재, outside/sort-marker 미생성",
+        "variant": "sort-compress-program",
     },
 )
 
@@ -316,15 +332,16 @@ def write_blog_report_export(
     roles = ROLE_ORDER
     verdict = "모든 variant가 기대값과 일치했다" if status == "PASS" else "일부 variant가 기대값과 어긋났다"
     lines = [
-        "# CVE-2025-61260 — variant 회귀 요약",
+        "# CVE-2025-66032 — sort --compress-program 회귀 요약",
         "",
         f"- 실행: `{comparison_name}` ({utc_now()})",
         f"- 결론: **{status}** — {verdict}",
         "",
-        "Codex 0.21.0(known-vulnerable) 대비 0.22.0(known-fixed)·0.147.0(current)에서, "
-        "project-controlled repository/config가 로컬 MCP server를 spawn시킬 수 있는지 "
-        "여러 repository 형태(variant)로 확인한 결과다. case별 원문, target hash, syscall "
-        "trace는 `summary-table.md`/`summary-table.csv`와 `result.json`을 참고한다.",
+        "Claude Code 1.0.92(known-vulnerable) 대비 1.0.93(known-fixed)·2.1.226(current)에서, "
+        "read-only Bash classifier가 `sort -S 1b --compress-program sh`를 auto-approve해 "
+        "attacker-controlled stdin이 host shell로 실행되는지 확인한 결과다. mock model server는 "
+        "고정된 `Bash` tool_use만 반환하고 실제 permission classifier·host shell을 그대로 실행한다. "
+        "case별 원문, target hash는 `summary-table.md`/`summary-table.csv`와 `result.json`을 참고한다.",
         "",
         "| variant | known-vulnerable | known-fixed | current |",
         "|---|---|---|---|",
@@ -605,7 +622,7 @@ def run_comparison(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="CVE-2025-61260을 Codex 0.21.0, 0.22.0, current에서 비교합니다."
+        description="CVE-2025-66032을 Claude Code 1.0.92, 1.0.93, current에서 비교합니다."
     )
     parser.add_argument(
         "--repeat",
@@ -621,8 +638,8 @@ def main() -> int:
     )
     args = parser.parse_args()
     return run_comparison(
-        comparison_name="CVE-2025-61260",
-        run_slug="compare-codex-61260",
+        comparison_name="CVE-2025-66032",
+        run_slug="compare-claude-66032",
         specs=COMPARISON_SPECS,
         repeat=args.repeat,
         trace=args.trace,

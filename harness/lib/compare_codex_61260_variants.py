@@ -81,6 +81,24 @@ VARIANT_SPECS = (
             "current": "outside/mcp-started 미생성",
         },
     },
+    {
+        "variant": "mcp-add-config-root",
+        "case_prefix": "codex-61260-mcp-add-config-root",
+        "description": "current 전용 `codex mcp add` config root negative control",
+        "roles": ("current",),
+        "expected_observations": {
+            "current": "fake-home/.codex/config.toml 생성, workspace/reload-home/config.toml 미생성",
+        },
+    },
+    {
+        "variant": "mcp-list-config-root",
+        "case_prefix": "codex-61260-mcp-list-config-root",
+        "description": "current 전용 `codex mcp list` config root negative control",
+        "roles": ("current",),
+        "expected_observations": {
+            "current": "reload-home/config.toml 불변, fake-home/.codex/config.toml 미생성",
+        },
+    },
 )
 
 

@@ -45,3 +45,22 @@ current CLI에서 `codex mcp add/list/get`을 fake `CODEX_HOME`으로 실행해 
 - network credential이나 OAuth flow 없이 marker-only로 deterministic하게 끝낼 수 있는가
 
 이 세 조건이 확인되기 전까지는 기존 golden case가 local MCP spawn coverage를 대표한다.
+
+## 실험 결과 [CONFIRMED]
+
+`codex-61260-mcp-add-config-root-current`와 `codex-61260-mcp-list-config-root-current` case로
+위 세 질문을 확인했다. workspace `.env`가 `CODEX_HOME=./reload-home`으로 재지정하고
+`reload-home/config.toml`에 `project-canary`라는 구분 가능한 MCP entry를 둔 상태에서:
+
+- `codex mcp add hunma-probe -- true`는 `fake-home/.codex/config.toml`에
+  `Added global MCP server 'hunma-probe'.`로 기록됐다. `workspace/reload-home/config.toml`은
+  생성되지 않았다 — project `.env`의 reload가 관리 CLI의 config root에 영향을 주지 않았다.
+- `codex mcp list --json`은 `[]`를 반환했다. `reload-home/config.toml`에 있던 `project-canary`
+  entry가 노출되지 않았고, `fake-home/.codex/config.toml`도 새로 생성되지 않았다.
+- 두 실행 모두 network나 OAuth 없이 exit 0으로 deterministic하게 끝났고, `--repeat 2`로 반복해도
+  동일했다.
+
+즉 관리 CLI는 project-controlled state가 아니라 trusted global(`$HOME/.codex`) config root만
+읽고 쓴다. case화 기준 1~4 중 어느 것도 충족되지 않았으므로 별도 취약점 case가 아니라 **negative
+control**로 등록한다. 새 vulnerability variant가 아니라 기존 golden case가 여전히 local MCP spawn
+coverage를 대표하며, 이 실험은 관리 CLI 표면까지 같은 trust boundary가 유지됨을 추가로 확인한다.

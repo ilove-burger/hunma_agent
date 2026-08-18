@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "claude-66032-sort-compress-safe-control",
+  "description": "CVE-2025-66032 하네스의 safe negative control이다. 평범한 `echo hello`가 harness의 mock/wrapper 경로 자체에서 marker를 잘못 만들지 않는지 확인한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@anthropic-ai/claude-code",
+    "version": "1.0.92",
+    "allowed_sha256": [
+      "a3669a7f28f6445f2739a20db9be773540228a521b6ca34e2f93d98b4b054599"
+    ]
+  },
+  "execution": {
+    "argv": [
+      "${PYTHON}",
+      "${REPO_ROOT}/harness/fixtures/claude-66032/run_with_mock.py",
+      "--cli-js",
+      "${TARGET}",
+      "--command",
+      "echo hello",
+      "--result-out",
+      "${OUTSIDE}/claude-result.json",
+      "--timeout-seconds",
+      "35"
+    ],
+    "cwd": "workspace",
+    "timeout_seconds": 45,
+    "environment": {}
+  },
+  "expectations": {
+    "created": [],
+    "absent": ["outside/sort-marker"],
+    "unchanged": [],
+    "contents": {}
+  }
+}

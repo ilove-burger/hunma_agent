@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "id": "claude-66032-sort-compress-fixed",
+  "description": "CVE-2025-66032 sort --compress-program chain의 known-fixed case다. Claude Code 1.0.93의 typed safe-option parser가 같은 command를 approval 경로로 보내는지 확인한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@anthropic-ai/claude-code",
+    "version": "1.0.93",
+    "allowed_sha256": [
+      "01d72c7ba39bb5f3e7eb9e02da3675b6e990cc5c90c26e266590d70e7a9225be"
+    ]
+  },
+  "execution": {
+    "argv": [
+      "${PYTHON}",
+      "${REPO_ROOT}/harness/fixtures/claude-66032/run_with_mock.py",
+      "--cli-js",
+      "${TARGET}",
+      "--command",
+      "echo 'touch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker\ntouch ${OUTSIDE}/sort-marker' | sort -S 1b --compress-program sh",
+      "--result-out",
+      "${OUTSIDE}/claude-result.json",
+      "--timeout-seconds",
+      "35"
+    ],
+    "cwd": "workspace",
+    "timeout_seconds": 45,
+    "environment": {}
+  },
+  "expectations": {
+    "created": [],
+    "absent": ["outside/sort-marker"],
+    "unchanged": [],
+    "contents": {}
+  }
+}

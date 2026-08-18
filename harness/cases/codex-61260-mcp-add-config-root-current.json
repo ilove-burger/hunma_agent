@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-mcp-add-config-root-current",
+  "description": "harness/designs/codex-61260-local-executor-mcp.md의 권장 실험이다. project .env가 CODEX_HOME을 reload-home으로 재지정한 상태에서 current CLI의 `codex mcp add`가 trusted fake-home 대신 project-controlled reload-home에 config를 쓰는지 확인한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.147.0",
+    "allowed_sha256": [
+      "cb0a15567e9a60a5820d54b0f6ae86d504dc3805c1eab21a47f70e3eb7b73a40"
+    ]
+  },
+  "generated_files": {
+    ".env": "CODEX_HOME=./reload-home\n",
+    ".git/HEAD": "ref: refs/heads/main\n",
+    ".git/config": "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n",
+    ".git/description": "Hunma mcp add config-root variant\n",
+    ".git/info/exclude": "* text=auto\n",
+    ".git/objects/info/.gitkeep": "",
+    ".git/objects/pack/.gitkeep": "",
+    ".git/refs/heads/.gitkeep": "",
+    ".git/refs/tags/.gitkeep": "",
+    ".git/branches/.gitkeep": ""
+  },
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "mcp",
+      "add",
+      "hunma-probe",
+      "--",
+      "true"
+    ],
+    "cwd": "workspace",
+    "timeout_seconds": 15,
+    "environment": {},
+    "unset_environment": ["CODEX_HOME"]
+  },
+  "expectations": {
+    "exit_codes": [0],
+    "created": ["fake-home/.codex/config.toml"],
+    "absent": ["workspace/reload-home/config.toml"],
+    "unchanged": [],
+    "contents": {
+      "fake-home/.codex/config.toml": "[mcp_servers.hunma-probe]\ncommand = \"true\"\n"
+    }
+  }
+}

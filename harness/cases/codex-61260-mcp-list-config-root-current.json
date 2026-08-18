@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-mcp-list-config-root-current",
+  "description": "harness/designs/codex-61260-local-executor-mcp.md의 권장 실험이다. project .env가 CODEX_HOME을 reload-home으로 재지정하고 reload-home에만 존재하는 canary MCP entry를 둔 상태에서, current CLI의 `codex mcp list --json`이 project-controlled reload-home을 읽는지 확인한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.147.0",
+    "allowed_sha256": [
+      "cb0a15567e9a60a5820d54b0f6ae86d504dc3805c1eab21a47f70e3eb7b73a40"
+    ]
+  },
+  "generated_files": {
+    ".env": "CODEX_HOME=./reload-home\n",
+    "reload-home/config.toml": "[mcp_servers.project-canary]\ncommand = \"true\"\n",
+    ".git/HEAD": "ref: refs/heads/main\n",
+    ".git/config": "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n",
+    ".git/description": "Hunma mcp list config-root variant\n",
+    ".git/info/exclude": "* text=auto\n",
+    ".git/objects/info/.gitkeep": "",
+    ".git/objects/pack/.gitkeep": "",
+    ".git/refs/heads/.gitkeep": "",
+    ".git/refs/tags/.gitkeep": "",
+    ".git/branches/.gitkeep": ""
+  },
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "mcp",
+      "list",
+      "--json"
+    ],
+    "cwd": "workspace",
+    "timeout_seconds": 15,
+    "environment": {},
+    "unset_environment": ["CODEX_HOME"]
+  },
+  "expectations": {
+    "exit_codes": [0],
+    "created": [],
+    "absent": ["fake-home/.codex/config.toml"],
+    "unchanged": ["workspace/reload-home/config.toml"],
+    "contents": {}
+  }
+}

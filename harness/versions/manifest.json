@@ -36,6 +36,42 @@
       "archive_sha256": "c969740cf8297e4c31905cd551efeb2c99af5080c12c236bdf825598b250139a",
       "purpose": "CVE-2025-61260 현재 버전 회귀 음성 대조군",
       "status": "registered"
+    },
+    {
+      "label": "claude-code-1.0.92",
+      "product": "@anthropic-ai/claude-code",
+      "version": "1.0.92",
+      "source": "npm:@anthropic-ai/claude-code@1.0.92",
+      "npm_sha1": "d09b04f2573d48ac76a296f0c8ee3d8e486ca748",
+      "sha256": "a3669a7f28f6445f2739a20db9be773540228a521b6ca34e2f93d98b4b054599",
+      "path": "harness/targets/claude-code-1.0.92/package/cli.js",
+      "archive_sha256": "7c6cbab481b29d2d756669581e86e32a04f572a31f4d93068d81a6512a0299c7",
+      "purpose": "CVE-2025-66032 취약 버전 양성 대조군 (sort --compress-program chain)",
+      "status": "registered"
+    },
+    {
+      "label": "claude-code-1.0.93",
+      "product": "@anthropic-ai/claude-code",
+      "version": "1.0.93",
+      "source": "npm:@anthropic-ai/claude-code@1.0.93",
+      "npm_sha1": "43113f9ef4c174b1a1c32392f51f938cd773dc44",
+      "sha256": "01d72c7ba39bb5f3e7eb9e02da3675b6e990cc5c90c26e266590d70e7a9225be",
+      "path": "harness/targets/claude-code-1.0.93/package/cli.js",
+      "archive_sha256": "f80f9d00220274442a54f91cd84bcbb7b88decd002ff84498cf782f95aa8c7eb",
+      "purpose": "CVE-2025-66032 공식 수정 버전 음성 대조군 (typed safe-option parser)",
+      "status": "registered"
+    },
+    {
+      "label": "claude-code-current",
+      "product": "@anthropic-ai/claude-code-linux-x64",
+      "version": "2.1.226",
+      "source": "npm:@anthropic-ai/claude-code-linux-x64@2.1.226",
+      "npm_sha1": "fedd61df52f2286ae49ffbb02d624e586c0c7fe4",
+      "sha256": "4e9bec1177ce9690e8bd988b710ac24105e70da428dd094c5adcbbe786a55555",
+      "path": "harness/targets/claude-code-2.1.226-linux-x64/package/claude",
+      "archive_sha256": "d3cee95e86a432c8d7cb9496bc26ec3537808e1ea85e8207071cba3d34983d7f",
+      "purpose": "CVE-2025-66032 현재 버전(stable dist-tag) 회귀 음성 대조군",
+      "status": "registered"
     }
   ]
 }
