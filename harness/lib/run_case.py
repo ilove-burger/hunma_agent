@@ -61,6 +61,130 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def read_text_if_available(path: Path) -> str | None:
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+
+
+def command_metadata(name: str, version_args: list[str]) -> dict[str, Any]:
+    path = shutil.which(name)
+    metadata: dict[str, Any] = {
+        "available": path is not None,
+        "path": path,
+        "version": None,
+    }
+    if path is None:
+        return metadata
+    try:
+        completed = subprocess.run(
+            [path, *version_args],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        metadata["version_error"] = str(exc)
+        return metadata
+    output = completed.stdout.strip().splitlines()
+    metadata["version"] = output[0] if output else None
+    metadata["version_return_code"] = completed.returncode
+    return metadata
+
+
+def namespace_metadata() -> dict[str, Any]:
+    namespace_root = Path("/proc/self/ns")
+    namespaces: dict[str, str] = {}
+    if namespace_root.is_dir():
+        for path in sorted(namespace_root.iterdir(), key=lambda item: item.name):
+            try:
+                namespaces[path.name] = os.readlink(path)
+            except OSError as exc:
+                namespaces[path.name] = f"error: {exc}"
+
+    settings = {
+        "kernel.unprivileged_userns_clone": read_text_if_available(
+            Path("/proc/sys/kernel/unprivileged_userns_clone")
+        ),
+        "user.max_user_namespaces": read_text_if_available(
+            Path("/proc/sys/user/max_user_namespaces")
+        ),
+        "user.max_net_namespaces": read_text_if_available(
+            Path("/proc/sys/user/max_net_namespaces")
+        ),
+        "user.max_pid_namespaces": read_text_if_available(
+            Path("/proc/sys/user/max_pid_namespaces")
+        ),
+    }
+    return {
+        "current": namespaces,
+        "kernel_settings": settings,
+        "user_namespace_likely_available": settings["user.max_user_namespaces"] not in (None, "0"),
+        "network_namespace_likely_available": settings["user.max_net_namespaces"] not in (None, "0"),
+        "pid_namespace_likely_available": settings["user.max_pid_namespaces"] not in (None, "0"),
+    }
+
+
+def build_environment_metadata(
+    case: dict[str, Any],
+    args: argparse.Namespace,
+    environment: dict[str, str],
+    cwd: Path,
+    target_path: Path | None,
+    target_hash: str | None,
+    trace_enabled: bool,
+    trace_reason: str,
+) -> dict[str, Any]:
+    safety = case["safety"]
+    return {
+        "case": case["id"],
+        "platform": platform.platform(),
+        "python": {
+            "version": platform.python_version(),
+            "executable": sys.executable,
+        },
+        "os": {
+            "system": platform.system(),
+            "release": platform.release(),
+            "version": platform.version(),
+            "machine": platform.machine(),
+            "processor": platform.processor(),
+        },
+        "user": {
+            "uid": os.getuid(),
+            "gid": os.getgid(),
+            "euid": os.geteuid(),
+            "egid": os.getegid(),
+            "is_root": os.geteuid() == 0,
+        },
+        "cwd": str(cwd),
+        "environment_keys": sorted(environment),
+        "unset_environment": sorted(case["execution"].get("unset_environment", [])),
+        "network_policy": safety["network"],
+        "outer_isolation": {
+            "confirmed": args.isolated_lab_confirmed,
+            "kind": os.environ.get("HUNMA_OUTER_ISOLATION"),
+            "unshare": os.environ.get("HUNMA_OUTER_UNSHARE"),
+        },
+        "namespaces": namespace_metadata(),
+        "tools": {
+            "bwrap": command_metadata("bwrap", ["--version"]),
+            "strace": {
+                **command_metadata("strace", ["-V"]),
+                "trace_policy": args.trace,
+                "trace_enabled": trace_enabled,
+                "trace_reason": trace_reason,
+            },
+        },
+        "target": str(target_path) if target_path else None,
+        "target_sha256": target_hash,
+    }
+
+
 def require_within(path: Path, root: Path, label: str) -> Path:
     resolved = path.resolve()
     root_resolved = root.resolve()
@@ -152,6 +276,13 @@ def validate_case(case: dict[str, Any]) -> None:
             raise CaseError(f"fixture 디렉터리가 없습니다: {fixture_path}")
     for template in case.get("template_files", []):
         safe_relative(template, "template 파일")
+    generated_files = case.get("generated_files", {})
+    if not isinstance(generated_files, dict) or not all(
+        isinstance(key, str) and isinstance(value, str) for key, value in generated_files.items()
+    ):
+        raise CaseError("generated_files는 path를 string content에 매핑해야 합니다")
+    for generated_path in generated_files:
+        safe_relative(generated_path, "generated_files")
 
     target = case.get("target", {})
     if not isinstance(target, dict):
@@ -392,6 +523,13 @@ def main() -> int:
         if fixture_dir:
             source = require_within(REPO_ROOT / fixture_dir, FIXTURES_ROOT, "fixture 디렉터리")
             shutil.copytree(source, workspace, dirs_exist_ok=True, symlinks=True)
+        for relative_text, content in case.get("generated_files", {}).items():
+            relative = safe_relative(relative_text, "generated_files")
+            generated_path = require_within(workspace / relative, workspace, "generated_files")
+            if generated_path.exists() and generated_path.is_dir():
+                raise CaseError(f"generated_files 대상이 디렉터리입니다: {relative_text}")
+            generated_path.parent.mkdir(parents=True, exist_ok=True)
+            generated_path.write_text(substitute(content, variables), encoding="utf-8")
         for relative_text in case.get("template_files", []):
             relative = safe_relative(relative_text, "template 파일")
             template_path = require_within(workspace / relative, workspace, "template 파일")
@@ -422,22 +560,6 @@ def main() -> int:
         before = snapshot(lab_root)
         json_dump(artifacts / "filesystem-before.json", before)
         json_dump(artifacts / "case.json", case)
-        json_dump(
-            artifacts / "environment.json",
-            {
-                "case": case["id"],
-                "platform": platform.platform(),
-                "python": platform.python_version(),
-                "uid": os.geteuid(),
-                "cwd": str(cwd),
-                "environment_keys": sorted(environment),
-                "unset_environment": sorted(execution.get("unset_environment", [])),
-                "network_policy": safety["network"],
-                "outer_isolation_confirmed": args.isolated_lab_confirmed,
-                "target": str(target_path) if target_path else None,
-                "target_sha256": target_hash,
-            },
-        )
 
         traced_argv = argv
         trace_enabled = False
@@ -480,6 +602,18 @@ def main() -> int:
                     )
         elif args.trace != "never":
             trace_reason = "strace executable을 찾을 수 없음"
+
+        environment_metadata = build_environment_metadata(
+            case,
+            args,
+            environment,
+            cwd,
+            target_path,
+            target_hash,
+            trace_enabled,
+            trace_reason,
+        )
+        json_dump(artifacts / "environment.json", environment_metadata)
 
         started = time.monotonic()
         timed_out = False
@@ -541,6 +675,7 @@ def main() -> int:
             "trace_reason": trace_reason,
             "target": str(target_path) if target_path else None,
             "target_sha256": target_hash,
+            "environment_metadata": environment_metadata,
             "checks": checks,
         }
         json_dump(artifacts / "result.json", result)

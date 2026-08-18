@@ -16,6 +16,7 @@
     "trace_reason",
     "target",
     "target_sha256",
+    "environment_metadata",
     "checks"
   ],
   "properties": {
@@ -35,6 +36,125 @@
       "type": ["string", "null"],
       "pattern": "^[0-9a-f]{64}$"
     },
+    "environment_metadata": {
+      "type": "object",
+      "required": [
+        "case",
+        "platform",
+        "python",
+        "os",
+        "user",
+        "cwd",
+        "environment_keys",
+        "unset_environment",
+        "network_policy",
+        "outer_isolation",
+        "namespaces",
+        "tools",
+        "target",
+        "target_sha256"
+      ],
+      "properties": {
+        "case": {"type": "string"},
+        "platform": {"type": "string"},
+        "python": {
+          "type": "object",
+          "required": ["version", "executable"],
+          "properties": {
+            "version": {"type": "string"},
+            "executable": {"type": "string"}
+          },
+          "additionalProperties": true
+        },
+        "os": {
+          "type": "object",
+          "required": ["system", "release", "version", "machine", "processor"],
+          "properties": {
+            "system": {"type": "string"},
+            "release": {"type": "string"},
+            "version": {"type": "string"},
+            "machine": {"type": "string"},
+            "processor": {"type": "string"}
+          },
+          "additionalProperties": true
+        },
+        "user": {
+          "type": "object",
+          "required": ["uid", "gid", "euid", "egid", "is_root"],
+          "properties": {
+            "uid": {"type": "integer"},
+            "gid": {"type": "integer"},
+            "euid": {"type": "integer"},
+            "egid": {"type": "integer"},
+            "is_root": {"type": "boolean"}
+          },
+          "additionalProperties": true
+        },
+        "cwd": {"type": "string"},
+        "environment_keys": {"type": "array", "items": {"type": "string"}},
+        "unset_environment": {"type": "array", "items": {"type": "string"}},
+        "network_policy": {"enum": ["inherit", "outer-isolation-required"]},
+        "outer_isolation": {
+          "type": "object",
+          "required": ["confirmed", "kind", "unshare"],
+          "properties": {
+            "confirmed": {"type": "boolean"},
+            "kind": {"type": ["string", "null"]},
+            "unshare": {"type": ["string", "null"]}
+          },
+          "additionalProperties": true
+        },
+        "namespaces": {
+          "type": "object",
+          "required": [
+            "current",
+            "kernel_settings",
+            "user_namespace_likely_available",
+            "network_namespace_likely_available",
+            "pid_namespace_likely_available"
+          ],
+          "properties": {
+            "current": {"type": "object", "additionalProperties": {"type": "string"}},
+            "kernel_settings": {
+              "type": "object",
+              "additionalProperties": {"type": ["string", "null"]}
+            },
+            "user_namespace_likely_available": {"type": "boolean"},
+            "network_namespace_likely_available": {"type": "boolean"},
+            "pid_namespace_likely_available": {"type": "boolean"}
+          },
+          "additionalProperties": true
+        },
+        "tools": {
+          "type": "object",
+          "required": ["bwrap", "strace"],
+          "properties": {
+            "bwrap": {"$ref": "#/$defs/tool_metadata"},
+            "strace": {
+              "allOf": [
+                {"$ref": "#/$defs/tool_metadata"},
+                {
+                  "type": "object",
+                  "required": ["trace_policy", "trace_enabled", "trace_reason"],
+                  "properties": {
+                    "trace_policy": {"enum": ["auto", "always", "never"]},
+                    "trace_enabled": {"type": "boolean"},
+                    "trace_reason": {"type": "string"}
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": true
+        },
+        "target": {"type": ["string", "null"]},
+        "target_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
     "checks": {
       "type": "array",
       "minItems": 1,
@@ -48,6 +168,20 @@
         },
         "additionalProperties": false
       }
+    }
+  },
+  "$defs": {
+    "tool_metadata": {
+      "type": "object",
+      "required": ["available", "path", "version"],
+      "properties": {
+        "available": {"type": "boolean"},
+        "path": {"type": ["string", "null"]},
+        "version": {"type": ["string", "null"]},
+        "version_return_code": {"type": "integer"},
+        "version_error": {"type": "string"}
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": false

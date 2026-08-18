@@ -88,7 +88,7 @@ hunma_agent/
 하네스는 논리적 `workspace`, `outside`, `fake-home`, `tmp`를 만들고 다음 증거를 보존한다.
 
 - 대상 binary/package의 version과 SHA-256
-- 정제된 environment key 목록
+- 정제된 environment key 목록과 OS/kernel, namespace, `bwrap`/`strace` metadata
 - stdout, stderr, exit status
 - 실행 전후 filesystem snapshot과 content hash
 - 가능한 경우 `strace` process trace
@@ -113,6 +113,8 @@ CVE-2025-61260의 취약·수정·current 골든 비교:
 
 비교 명령은 세 배포 아티팩트의 SHA-256을 먼저 검증하고 격리된 case를 순서대로 실행한다.
 통합 `result.json`, 이벤트 `events.jsonl`, 각 실행의 stdout·stderr와 원본 결과 경로가 보존된다.
+`normal repo`와 `worktree` 형태의 CVE-2025-61260 variant case도 포함되어 있어 repository 형태가
+바뀌어도 같은 trust boundary가 유지되는지 비교할 수 있다.
 
 설치와 case 작성 방법은 **[하네스 문서](harness/README.md)**를 참고한다. Historical binary와 실행
 결과는 Git에 포함하지 않으며, hash와 manifest만 버전 관리한다.

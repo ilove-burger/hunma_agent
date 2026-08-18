@@ -37,5 +37,7 @@ exec bwrap \
   --setenv HOME /tmp/hunma-research-home \
   --setenv PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
   --setenv LANG C.UTF-8 \
+  --setenv HUNMA_OUTER_ISOLATION bwrap \
+  --setenv HUNMA_OUTER_UNSHARE user,pid,net,uts,ipc \
   --chdir "$repo_root" \
   "$repo_root/harness/run-case" --isolated-lab-confirmed "$@"

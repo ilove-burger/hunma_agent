@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-worktree-fixed",
+  "description": "CVE-2025-61260 worktree repository variant의 수정 버전 음성 대조군이다. .git file과 commondir가 분리된 worktree에서 project .env가 trusted CODEX_HOME으로 승격되지 않는지 확인한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.22.0",
+    "allowed_sha256": [
+      "f62a5d6025f6a51d63978042e530aa7dd3a69be029b7d48ad8ac4b13ce8843cf"
+    ]
+  },
+  "fixture_dir": "harness/fixtures/codex-61260",
+  "generated_files": {
+    ".git": "gitdir: ${WORKSPACE}/admin/main.git/worktrees/workspace\n",
+    "admin/main.git/HEAD": "ref: refs/heads/main\n",
+    "admin/main.git/config": "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n",
+    "admin/main.git/description": "Hunma worktree variant\n",
+    "admin/main.git/info/exclude": "* text=auto\n",
+    "admin/main.git/objects/info/.gitkeep": "",
+    "admin/main.git/objects/pack/.gitkeep": "",
+    "admin/main.git/refs/heads/.gitkeep": "",
+    "admin/main.git/refs/tags/.gitkeep": "",
+    "admin/main.git/branches/.gitkeep": "",
+    "admin/main.git/worktrees/workspace/HEAD": "ref: refs/heads/main\n",
+    "admin/main.git/worktrees/workspace/commondir": "../..\n",
+    "admin/main.git/worktrees/workspace/gitdir": "${WORKSPACE}/.git\n"
+  },
+  "template_files": [".codex/config.toml"],
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "exec",
+      "정확히 OK라고 답하세요."
+    ],
+    "cwd": "workspace",
+    "observation_seconds": 8,
+    "environment": {},
+    "unset_environment": ["CODEX_HOME"]
+  },
+  "expectations": {
+    "created": [],
+    "absent": ["outside/mcp-started"],
+    "unchanged": [],
+    "contents": {}
+  }
+}

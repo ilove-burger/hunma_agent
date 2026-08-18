@@ -38,6 +38,10 @@
     },
     "fixture_dir": {"type": "string"},
     "template_files": {"type": "array", "items": {"type": "string"}},
+    "generated_files": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
     "execution": {
       "type": "object",
       "required": ["argv"],

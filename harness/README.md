@@ -15,6 +15,10 @@
 runner는 child environment에서 일반적인 API 및 repository 자격 증명을 제거한다. shell string은
 실행하지 않으며 case command는 명시적인 argv 배열로 구성한다. filesystem snapshot은 최대
 10,000개 항목으로 제한하고 8 MiB 이하의 파일만 hash한다.
+각 case 결과에는 `environment_metadata`를 함께 저장한다. 여기에는 OS/kernel, architecture, uid/gid,
+현재 namespace id, user/net/pid namespace 제한값, `bwrap`/`strace` 설치 및 버전, 실제 trace 활성화
+여부, 외부 격리 확인값이 포함된다. 따라서 marker 결과가 target 동작 때문인지, 실험 환경 문제인지
+나중에 구분할 수 있다.
 
 환경 변수 기반 locator 동작을 시험하는 case는 `execution.unset_environment`를 사용해
 `CODEX_HOME`을 명시적으로 제거할 수 있다. runner는 disposable `HOME`을 계속 강제하며 핵심 안전
@@ -93,6 +97,30 @@ case 결과와 비교 결과의 형식은 각각 `schemas/case-result.schema.jso
 `strace`가 설치되어 있으면 syscall trace를 자동으로 수집한다. 비활성화하려면 `--trace never`,
 필수로 요구하려면 `--trace always`를 사용한다.
 
+## CVE-2025-61260 variant case
+
+기본 golden case는 `--skip-git-repo-check`를 사용해 config loading 경계만 최소화해서 본다. variant
+case는 실제 repository 형태를 바꿔 같은 primitive가 재현되는지 확인한다.
+
+| Variant | Case prefix | Repository 형태 | 0.21.0 기대값 | 0.22.0/current 기대값 |
+|---|---|---|---|---|
+| normal repo | `codex-61260-normal-repo-*` | workspace 아래 일반 `.git/` directory | marker 생성 | marker 미생성 |
+| worktree | `codex-61260-worktree-*` | `.git` file과 분리된 `commondir` | marker 생성 | marker 미생성 |
+
+예시는 다음과 같다.
+
+```bash
+./harness/run-isolated \
+  harness/cases/codex-61260-normal-repo-vulnerable.json \
+  --target harness/targets/codex-0.21.0/bin/codex-x86_64-unknown-linux-musl \
+  --trace never
+
+./harness/run-isolated \
+  harness/cases/codex-61260-worktree-current.json \
+  --target harness/targets/codex-0.147.0/vendor/x86_64-unknown-linux-musl/bin/codex \
+  --trace never
+```
+
 ## 대상 아티팩트 등록
 
 대상 다운로드는 의도적으로 자동화하지 않는다. vendor 약관에 따라 정확한 historical artifact를
@@ -145,7 +173,8 @@ API key를 대상 process 또는 repository가 통제하는 코드에 노출하�
 1. `harness/cases/selftest-marker.json`을 복사한다.
 2. command는 argv 배열로 유지하며 편의를 위해 `sh -c`를 추가하지 않는다.
 3. 공격자가 통제하는 입력은 `harness/fixtures/` 아래에 둔다.
-4. 대상을 실행하는 case는 `host_safe: false`로 표시한다.
-5. exit, 생성, 부재, 불변 또는 content oracle을 정확히 정의한다.
-6. `run-case --validate-only`로 case를 검증한다.
-7. 현재 build를 시험하기 전에 알려진 취약 버전과 수정 버전으로 하네스를 증명한다.
+4. `.git` file처럼 Git에 직접 넣기 어려운 실행 시점 구조는 `generated_files`로 만든다.
+5. 대상을 실행하는 case는 `host_safe: false`로 표시한다.
+6. exit, 생성, 부재, 불변 또는 content oracle을 정확히 정의한다.
+7. `run-case --validate-only`로 case를 검증한다.
+8. 현재 build를 시험하기 전에 알려진 취약 버전과 수정 버전으로 하네스를 증명한다.
