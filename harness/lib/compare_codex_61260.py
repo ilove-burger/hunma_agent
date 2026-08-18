@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import re
@@ -286,6 +287,59 @@ def build_summary(
     return summary
 
 
+def table_cell_text(cell: dict[str, Any] | None) -> str:
+    if cell is None:
+        return "N/A"
+    return (
+        f"{cell['status']} "
+        f"(pass={cell['passed_attempts']}, fail={cell['failed_attempts']}; "
+        f"{cell['marker_summary']}; case={cell['case']})"
+    )
+
+
+def write_summary_table_exports(artifacts_dir: Path, summary: dict[str, Any]) -> dict[str, str]:
+    summary_table = summary.get("summary_table")
+    if not isinstance(summary_table, list) or not summary_table:
+        return {}
+
+    markdown_path = artifacts_dir / "summary-table.md"
+    csv_path = artifacts_dir / "summary-table.csv"
+    roles = ROLE_ORDER
+
+    markdown_lines = [
+        "| variant | known-vulnerable | known-fixed | current |",
+        "|---|---|---|---|",
+    ]
+    for row in summary_table:
+        if not isinstance(row, dict):
+            continue
+        cells = [str(row.get("variant", ""))]
+        cells.extend(table_cell_text(row.get(role)).replace("|", "\\|") for role in roles)
+        markdown_lines.append("| " + " | ".join(cells) + " |")
+    markdown_path.write_text("\n".join(markdown_lines) + "\n", encoding="utf-8")
+
+    with csv_path.open("w", newline="", encoding="utf-8") as stream:
+        writer = csv.DictWriter(
+            stream,
+            fieldnames=["variant", "known-vulnerable", "known-fixed", "current"],
+        )
+        writer.writeheader()
+        for row in summary_table:
+            if not isinstance(row, dict):
+                continue
+            writer.writerow(
+                {
+                    "variant": row.get("variant", ""),
+                    **{role: table_cell_text(row.get(role)) for role in roles},
+                }
+            )
+
+    return {
+        "summary_table_markdown": str(markdown_path),
+        "summary_table_csv": str(csv_path),
+    }
+
+
 def validate_case_target(case_path: Path, entry: dict[str, Any], expected_hash: str) -> None:
     try:
         case = json.loads(case_path.read_text(encoding="utf-8"))
@@ -463,17 +517,20 @@ def run_comparison(
             )
             emit_event(events, "comparison_finished", status=status, run_dir=str(run_dir))
 
+        summary = build_summary(status, repeat, comparison_results)
+        exports = write_summary_table_exports(artifacts_dir, summary)
         result = {
             "schema_version": 1,
             "comparison": comparison_name,
             "status": status,
-            "summary": build_summary(status, repeat, comparison_results),
+            "summary": summary,
             "repeat": repeat,
             "trace_policy": trace,
             "started_at": started_at,
             "completed_at": utc_now(),
             "run_dir": str(run_dir),
             "events_path": str(events_path),
+            **({"exports": exports} if exports else {}),
             "targets": comparison_results,
         }
         result_path = artifacts_dir / "result.json"

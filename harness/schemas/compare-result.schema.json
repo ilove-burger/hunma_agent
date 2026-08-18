@@ -28,6 +28,7 @@
         "completed_at": {"type": "string", "minLength": 1},
         "run_dir": {"type": "string", "minLength": 1},
         "events_path": {"type": "string", "minLength": 1},
+        "exports": {"$ref": "#/$defs/exports"},
         "targets": {
           "type": "array",
           "minItems": 1,
@@ -60,6 +61,15 @@
     }
   ],
   "$defs": {
+    "exports": {
+      "type": "object",
+      "required": ["summary_table_markdown", "summary_table_csv"],
+      "properties": {
+        "summary_table_markdown": {"type": "string", "minLength": 1},
+        "summary_table_csv": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
     "summary": {
       "type": "object",
       "required": [

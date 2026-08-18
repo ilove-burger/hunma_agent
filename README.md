@@ -115,9 +115,9 @@ CVE-2025-61260의 취약·수정·current 골든 비교:
 비교 명령은 세 배포 아티팩트의 SHA-256을 먼저 검증하고 격리된 case를 순서대로 실행한다.
 통합 `result.json`, 이벤트 `events.jsonl`, 각 실행의 stdout·stderr와 원본 결과 경로가 보존된다.
 `normal repo`, `worktree`, `symlink repo`, `nested repo`, `gitdir/commondir`, `config reload`,
-`session resume` 형태의 CVE-2025-61260 variant case도 포함되어 있어 repository 형태와 lifecycle이
-바뀌어도 같은 trust boundary가 유지되는지 비교할 수 있다. Variant 비교 결과는
-`summary.summary_table` matrix로도 요약된다.
+`session resume`, `preexisting CODEX_HOME negative` 형태의 CVE-2025-61260 variant case도 포함되어
+있어 repository 형태와 lifecycle이 바뀌어도 같은 trust boundary가 유지되는지 비교할 수 있다. Variant
+비교 결과는 `summary.summary_table` matrix로 요약되고 Markdown/CSV로 export된다.
 
 설치와 case 작성 방법은 **[하네스 문서](harness/README.md)**를 참고한다. Historical binary와 실행
 결과는 Git에 포함하지 않으며, hash와 manifest만 버전 관리한다.

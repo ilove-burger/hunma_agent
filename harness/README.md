@@ -83,6 +83,7 @@ golden case와 repository variant 전체를 한 번에 비교한다.
 ./harness/compare-codex-61260-variants
 ./harness/compare-codex-61260-variants --repeat 2 --trace never
 ./harness/compare-codex-61260-variants --variant symlink-repo,nested-repo --trace never
+./harness/compare-codex-61260-variants --role current --trace never
 ```
 
 통합 결과와 이벤트 스트림은 각각
@@ -96,6 +97,9 @@ manifest와 일치하는지 검증한다. 개별 case의 stdout·stderr와 원�
 variant 비교 결과에는 `summary.summary_table`도 포함된다. 이 matrix는 row를 variant로, column을
 `known-vulnerable`, `known-fixed`, `current`로 두고 각 cell에 PASS/FAIL과 marker 관찰 요약을 저장한다.
 특정 버전에 적용할 수 없는 lifecycle case는 cell을 `null`로 기록한다.
+동일한 matrix는 `artifacts/summary-table.md`와 `artifacts/summary-table.csv`로도 export되며,
+통합 `result.json`의 `exports` field에 경로가 기록된다. 필요한 경우 `--variant`와 `--role`을 함께
+사용해 실행 범위를 줄인다.
 case 결과와 비교 결과의 형식은 각각 `schemas/case-result.schema.json`,
 `schemas/compare-result.schema.json`으로 고정한다. `validate-result`는 Python `jsonschema` package를
 사용한다.
@@ -122,6 +126,7 @@ case는 실제 repository 형태를 바꿔 같은 primitive가 재현되는지 �
 | gitdir/commondir | `codex-61260-gitdir-commondir-*` | `.git` file, gitdir, commondir가 분리된 repository | marker 생성 | marker 미생성 |
 | config reload | `codex-61260-config-reload-*` | `.env`가 `CODEX_HOME=./reload-home`으로 config root를 재지정 | marker 생성 | marker 미생성 |
 | session resume | `codex-61260-session-resume-current` | current CLI의 `exec resume` lifecycle | N/A | current에서 marker 미생성 |
+| preexisting CODEX_HOME negative | `codex-61260-preexisting-codex-home-negative-*` | runner가 fake `CODEX_HOME`을 이미 제공한 상태 | marker 미생성 | marker 미생성 |
 
 예시는 다음과 같다.
 
@@ -142,7 +147,13 @@ gitdir/commondir, config reload를 세 target 버전에서 실행하고, session
 실행한다. 통합 결과는
 `harness/runs/compare-codex-61260-variants/<timestamp-id>/artifacts/result.json`에 저장되며,
 `summary.attempts[*].variant`로 어느 repository 형태에서 나온 결과인지 구분할 수 있다. 전체 variant를
-항상 돌릴 필요가 없으면 `--variant symlink-repo,nested-repo`처럼 쉼표로 범위를 제한한다.
+항상 돌릴 필요가 없으면 `--variant symlink-repo,nested-repo`처럼 쉼표로 범위를 제한한다. 특정 역할만
+확인하려면 `--role current` 또는 `--role known-fixed,current`를 사용한다.
+
+`local/executor MCP`와 `subagent`는 별도 설계 문서로 관리한다.
+
+- `harness/designs/codex-61260-local-executor-mcp.md`
+- `harness/designs/codex-61260-subagent-variant.md`
 
 ## 대상 아티팩트 등록
 

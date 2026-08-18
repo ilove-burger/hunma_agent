@@ -71,6 +71,16 @@ VARIANT_SPECS = (
         "description": "current CLI의 exec resume lifecycle boundary",
         "roles": ("current",),
     },
+    {
+        "variant": "preexisting-codex-home-negative",
+        "case_prefix": "codex-61260-preexisting-codex-home-negative",
+        "description": "기존 CODEX_HOME이 이미 설정된 경우 project .env가 override하지 못하는 negative control",
+        "expected_observations": {
+            "known-vulnerable": "outside/mcp-started 미생성",
+            "known-fixed": "outside/mcp-started 미생성",
+            "current": "outside/mcp-started 미생성",
+        },
+    },
 )
 
 
@@ -92,7 +102,28 @@ def parse_variant_filter(value: str | None) -> tuple[str, ...] | None:
     return requested
 
 
-def build_specs(selected_variants: tuple[str, ...] | None = None) -> tuple[dict[str, str], ...]:
+def parse_role_filter(value: str | None) -> tuple[str, ...] | None:
+    if value is None:
+        return None
+    requested = tuple(dict.fromkeys(item.strip() for item in value.split(",") if item.strip()))
+    if not requested:
+        raise argparse.ArgumentTypeError("--role에는 하나 이상의 role 이름이 필요합니다")
+    known = {item["role"] for item in ROLE_SPECS}
+    unknown = sorted(set(requested) - known)
+    if unknown:
+        raise argparse.ArgumentTypeError(
+            "알 수 없는 role입니다: "
+            + ", ".join(unknown)
+            + ". 가능한 값: "
+            + ", ".join(sorted(known))
+        )
+    return requested
+
+
+def build_specs(
+    selected_variants: tuple[str, ...] | None = None,
+    selected_roles: tuple[str, ...] | None = None,
+) -> tuple[dict[str, str], ...]:
     specs: list[dict[str, str]] = []
     for variant in VARIANT_SPECS:
         if selected_variants is not None and variant["variant"] not in selected_variants:
@@ -101,15 +132,20 @@ def build_specs(selected_variants: tuple[str, ...] | None = None) -> tuple[dict[
         for role in ROLE_SPECS:
             if role["role"] not in enabled_roles:
                 continue
+            if selected_roles is not None and role["role"] not in selected_roles:
+                continue
+            expected_observations = variant.get("expected_observations", {})
+            expected_observation = expected_observations.get(
+                role["role"],
+                role["expected_observation"],
+            )
             specs.append(
                 {
                     "variant": variant["variant"],
                     "role": role["role"],
                     "target_label": role["target_label"],
                     "case": f"{variant['case_prefix']}-{role['short']}.json",
-                    "expected_observation": (
-                        f"{variant['variant']}: {role['expected_observation']}"
-                    ),
+                    "expected_observation": f"{variant['variant']}: {expected_observation}",
                 }
             )
     if not specs:
@@ -144,11 +180,23 @@ def main() -> int:
             "--variant symlink-repo,nested-repo"
         ),
     )
+    parser.add_argument(
+        "--role",
+        type=parse_role_filter,
+        help=(
+            "실행할 role을 쉼표로 제한합니다. 예: "
+            "--role current 또는 --role known-fixed,current"
+        ),
+    )
     args = parser.parse_args()
+    try:
+        specs = build_specs(args.variant, args.role)
+    except ValueError as exc:
+        parser.error(str(exc))
     return run_comparison(
         comparison_name="CVE-2025-61260-variants",
         run_slug="compare-codex-61260-variants",
-        specs=build_specs(args.variant),
+        specs=specs,
         repeat=args.repeat,
         trace=args.trace,
     )

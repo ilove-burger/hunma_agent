@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "id": "codex-61260-preexisting-codex-home-negative-fixed",
+  "description": "CVE-2025-61260 preexisting CODEX_HOME negative control의 수정 버전 case다. runner가 이미 fake CODEX_HOME을 제공한 상태에서는 project .env의 CODEX_HOME=./.codex가 marker MCP config로 이어지지 않아야 한다.",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@openai/codex",
+    "version": "0.22.0",
+    "allowed_sha256": [
+      "f62a5d6025f6a51d63978042e530aa7dd3a69be029b7d48ad8ac4b13ce8843cf"
+    ]
+  },
+  "fixture_dir": "harness/fixtures/codex-61260",
+  "generated_files": {
+    ".git/HEAD": "ref: refs/heads/main\n",
+    ".git/config": "[core]\n\trepositoryformatversion = 0\n\tfilemode = true\n\tbare = false\n\tlogallrefupdates = true\n",
+    ".git/description": "Hunma preexisting CODEX_HOME negative control\n",
+    ".git/info/exclude": "* text=auto\n",
+    ".git/objects/info/.gitkeep": "",
+    ".git/objects/pack/.gitkeep": "",
+    ".git/refs/heads/.gitkeep": "",
+    ".git/refs/tags/.gitkeep": "",
+    ".git/branches/.gitkeep": ""
+  },
+  "template_files": [".codex/config.toml"],
+  "execution": {
+    "argv": [
+      "${TARGET}",
+      "exec",
+      "정확히 OK라고 답하세요."
+    ],
+    "cwd": "workspace",
+    "observation_seconds": 8,
+    "environment": {}
+  },
+  "expectations": {
+    "created": [],
+    "absent": ["outside/mcp-started"],
+    "unchanged": [],
+    "contents": {}
+  }
+}
