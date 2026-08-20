@@ -12,6 +12,7 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 - `공개 PoC 확인`: 제3자의 동적 재현과 evidence를 검토했으나 독립 재현하지는 않음
 - `부분 동적 검증`: primitive 일부를 독립적으로 검증함
 - `E2E 재현`: 취약 제품 버전에서 전체 attack flow를 재현함
+- `E2E 재현 미완료`: artifact/code 근거는 확인했으나 전체 attack flow의 결정론적 동적 oracle은 아직 확보하지 못함
 - `patch efficacy 미확정`: 공식 fixed-version 표시는 있으나 artifact 또는 E2E evidence로 invariant 복원을 확인하지 못함
 - `version boundary 불일치`: 공식 fixed-version과 artifact/E2E에서 처음 확인한 fixed version이 다름
 
@@ -60,6 +61,7 @@ lexical path와 실제 filesystem object identity가 달라 권한 또는 sandbo
 | [CVE-2026-25724](claude/CVE-2026-25724.md) | Anthropic Claude Code | `policy-evaluated identity set ≠ filesystem symlink-resolution identity set` | deny-protected intermediate target의 multi-hop symlink-alias read 및 permission bypass | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
 | [CVE-2026-25725](claude/CVE-2026-25725.md) | Anthropic Claude Code | `path absent at policy compilation ≠ no future protected-object write capability` | sandboxed protected-config creation 및 next-lifecycle host hook process spawn | 배포 artifact 확인 · 패치 확인 · E2E 재현 |
 | [CVE-2026-39861](claude/CVE-2026-39861.md) | Anthropic Claude Code | `non-existent lexical leaf ≠ prospective filesystem target identity` | symlinked parent 아래 missing path를 통한 outside-workspace file creation | 배포 artifact 확인 · 패치 확인 · Write primitive E2E 재현 |
+| [CVE-2026-46406](claude/CVE-2026-46406.md) | Anthropic Claude Code | `predictable temp pathname ≠ victim-owned private filesystem namespace` | cross-user response disclosure 및 symlink-directed victim-writable file overwrite | 배포 artifact 확인 · 패치 확인 · E2E 재현 미완료 |
 
 ## Network / Exfiltration
 
