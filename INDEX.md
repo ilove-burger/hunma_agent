@@ -46,6 +46,7 @@ Untrusted state가 trust 또는 authority 결정 전에 소비되거나, executi
 | [CVE-2026-21852](claude/CVE-2026-21852.md) | Anthropic Claude Code | `untrusted project configuration ≠ trusted network control plane` | pre-trust attacker-selected credential-bearing outbound request 및 API key disclosure | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · E2E 재현 |
 | [CVE-2026-33068](claude/CVE-2026-33068.md) | Anthropic Claude Code | `repository-selected permission mode ≠ user-granted workspace trust` | repository-controlled trust-dialog suppression 및 `bypassPermissions` session authority | 배포 artifact 확인 · 패치 확인 · E2E 재현 |
 | [CVE-2026-35603](claude/CVE-2026-35603.md) | Anthropic Claude Code | `system-wide policy path ≠ administrator-controlled filesystem object` | cross-user managed configuration injection 및 조건부 victim-context helper process spawn | 배포 artifact 확인 · 패치 확인 |
+| [CVE-2026-40068](claude/CVE-2026-40068.md) | Anthropic Claude Code | `repository-declared identity path ≠ authenticated Git worktree membership` | persisted project-trust aliasing, trust dialog bypass 및 `SessionStart` host hook process spawn | 배포 artifact 확인 · 패치 확인 · E2E 재현 |
 
 ## Path / Filesystem
 
