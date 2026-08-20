@@ -11,6 +11,7 @@ Coding Agent 취약점을 주된 root-cause / security-invariant family로 분�
 - `패치 확인`: 수정 PR·commit 또는 fixed version을 확인함
 - `공개 PoC 확인`: 제3자의 동적 재현과 evidence를 검토했으나 독립 재현하지는 않음
 - `부분 동적 검증`: primitive 일부를 독립적으로 검증함
+- `semantic regression test`: 배포 artifact에서 복원한 policy/helper semantics를 deterministic oracle로 비교했으나 제품 전체 E2E는 수행하지 않음
 - `E2E 재현`: 취약 제품 버전에서 전체 attack flow를 재현함
 - `E2E 재현 미완료`: artifact/code 근거는 확인했으나 전체 attack flow의 결정론적 동적 oracle은 아직 확보하지 못함
 - `patch efficacy 미확정`: 공식 fixed-version 표시는 있으나 artifact 또는 E2E evidence로 invariant 복원을 확인하지 못함
@@ -72,3 +73,4 @@ Browser, local IPC 또는 outbound request가 trust/authorization boundary를 �
 | [CVE-2025-52882](claude/CVE-2025-52882.md) | Anthropic Claude Code IDE Extensions | `loopback reachability ≠ authenticated trusted-client identity` | unauthenticated IDE MCP channel attachment 및 privileged tool invocation | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 |
 | [CVE-2025-55284](claude/CVE-2025-55284.md) | Anthropic Claude Code | `no local mutation ≠ no attacker-observable side effect` | auto-approved DNS utility를 통한 attacker-observable outbound request | 배포 artifact 확인 · 패치 확인 · 공개 PoC 확인 · 부분 동적 검증 |
 | [CVE-2026-24052](claude/CVE-2026-24052.md) | Anthropic Claude Code | `hostname string prefix ≠ DNS authority identity` | trusted-domain 오분류를 통한 approval-free attacker-observable WebFetch GET | 배포 artifact 확인 · 패치 확인 · E2E 재현 |
+| [CVE-2026-54316](claude/CVE-2026-54316.md) | Anthropic Claude Code | `approved hostname ≠ approved tenant/path authority` | bare-host preapproval을 통한 attacker-observable Hugging Face WebFetch GET | 배포 artifact 확인 · 패치 확인 · semantic regression test · E2E 재현 미완료 |
