@@ -63,6 +63,7 @@ lexical path와 실제 filesystem object identity가 달라 권한 또는 sandbo
 | [CVE-2026-25725](claude/CVE-2026-25725.md) | Anthropic Claude Code | `path absent at policy compilation ≠ no future protected-object write capability` | sandboxed protected-config creation 및 next-lifecycle host hook process spawn | 배포 artifact 확인 · 패치 확인 · E2E 재현 |
 | [CVE-2026-39861](claude/CVE-2026-39861.md) | Anthropic Claude Code | `non-existent lexical leaf ≠ prospective filesystem target identity` | symlinked parent 아래 missing path를 통한 outside-workspace file creation | 배포 artifact 확인 · 패치 확인 · Write primitive E2E 재현 |
 | [CVE-2026-46406](claude/CVE-2026-46406.md) | Anthropic Claude Code | `predictable temp pathname ≠ victim-owned private filesystem namespace` | cross-user response disclosure 및 symlink-directed victim-writable file overwrite | 배포 artifact 확인 · 패치 확인 · E2E 재현 미완료 |
+| [CVE-2026-55607](claude/CVE-2026-55607.md) | Anthropic Claude Code | `worktree data-plane name ≠ Git control-plane sentinel identity` | `.git` worktree를 통한 Git-directory identity injection 및 sandbox writable-root confusion | 배포 artifact 확인 · 패치 확인 · 부분 동적 검증 · E2E 재현 미완료 |
 
 ## Network / Exfiltration
 
