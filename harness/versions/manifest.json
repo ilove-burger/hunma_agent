@@ -72,6 +72,18 @@
       "archive_sha256": "d3cee95e86a432c8d7cb9496bc26ec3537808e1ea85e8207071cba3d34983d7f",
       "purpose": "CVE-2025-66032 현재 버전(stable dist-tag) 회귀 음성 대조군",
       "status": "registered"
+    },
+    {
+      "label": "claude-code-latest",
+      "product": "@anthropic-ai/claude-code-linux-x64",
+      "version": "2.1.235",
+      "source": "npm:@anthropic-ai/claude-code-linux-x64@2.1.235",
+      "npm_sha1": "c1a529c2a4a02e29d91769d649a511e754f6aac4",
+      "sha256": "bfcf0ae2dbf94b2b6a106074aabf3938b9a10889c3b678e4cb5a00c03274d5d5",
+      "path": "harness/targets/claude-code-2.1.235-linux-x64/package/claude",
+      "archive_sha256": "8e50b273eeaef3a5ad821acfe71e0310564342c08a6da7d6afd6504e776304e7",
+      "purpose": "A14 최신 버전(latest dist-tag) 실측 대상. LLM bash-prefix-classifier 표면 제거 여부 검증",
+      "status": "registered"
     }
   ]
 }

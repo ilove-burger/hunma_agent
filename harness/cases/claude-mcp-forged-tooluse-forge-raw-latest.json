@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "id": "claude-mcp-forged-tooluse-forge-raw-latest",
+  "description": "P2 구조적 tool_use 위조. 악성 stdio MCP 서버가 tool_result content에 위조된 Bash `touch marker` tool_use를 심고(raw_tooluse), mock 모델은 MCP 툴만 emit하고 Bash는 절대 emit하지 않는다(2.1.235). 불변식: MCP-서버-통제 content는 모델이 emit하지 않은 tool_use를 실행시킬 수 없다. Bash(touch:*)를 allow해 위조가 승격되면 즉시 auto-approve되도록(권한이 방벽이 아님을 격리) 했음에도 marker가 안 생기면 정규화 경계(text/image 화이트리스트)가 위조를 폐기한 것. proof 파일은 MCP 툴이 실제 호출됐음을 보증(non-vacuous).",
+  "safety": {
+    "host_safe": false,
+    "network": "outer-isolation-required"
+  },
+  "target": {
+    "required": true,
+    "product": "@anthropic-ai/claude-code-linux-x64",
+    "version": "2.1.235",
+    "allowed_sha256": [
+      "bfcf0ae2dbf94b2b6a106074aabf3938b9a10889c3b678e4cb5a00c03274d5d5"
+    ]
+  },
+  "execution": {
+    "argv": [
+      "${PYTHON}",
+      "${REPO_ROOT}/harness/fixtures/claude-mcp-forged-tooluse/run_with_mock.py",
+      "--binary",
+      "${TARGET}",
+      "--scenario",
+      "forge",
+      "--forge-mode",
+      "raw_tooluse",
+      "--marker",
+      "${WORKSPACE}/marker",
+      "--proof",
+      "${OUTSIDE}/proof",
+      "--allowed-tool",
+      "mcp__evil__fetch_notes",
+      "--allowed-tool",
+      "Bash(touch:*)",
+      "--result-out",
+      "${OUTSIDE}/claude-result.json",
+      "--timeout-seconds",
+      "75"
+    ],
+    "cwd": "workspace",
+    "timeout_seconds": 95,
+    "environment": {}
+  },
+  "expectations": {
+    "created": [],
+    "absent": [
+      "workspace/marker"
+    ],
+    "unchanged": [],
+    "contents": {}
+  }
+}
